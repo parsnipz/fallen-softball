@@ -19,6 +19,7 @@ export default function TournamentDetail({
   onDeleteDocument,
 }) {
   const [showInviteModal, setShowInviteModal] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   // Calculate status counts
   const statusCounts = useMemo(() => {
@@ -30,6 +31,22 @@ export default function TournamentDetail({
       { pending: 0, in: 0, out: 0 }
     )
   }, [invitations])
+
+  // Calculate cost per player
+  const costPerPlayer = useMemo(() => {
+    if (!tournament?.total_cost || statusCounts.in === 0) return null
+    return (parseFloat(tournament.total_cost) / statusCounts.in).toFixed(2)
+  }, [tournament?.total_cost, statusCounts.in])
+
+  // Copy payment info to clipboard
+  const handleCopyPaymentInfo = () => {
+    if (!costPerPlayer || !tournament?.venmo_link) return
+    const message = `$${costPerPlayer} per player, Venmo: ${tournament.venmo_link}`
+    navigator.clipboard.writeText(message).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   // Sort invitations by status (in first, then pending, then out) and name
   const sortedInvitations = useMemo(() => {
@@ -159,6 +176,57 @@ export default function TournamentDetail({
           <div className="text-sm text-red-600">Out</div>
         </div>
       </div>
+
+      {/* Cost & Payment Info */}
+      {(tournament.total_cost || tournament.venmo_link) && (
+        <div className="bg-white shadow rounded-lg p-4 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Cost & Payment</h2>
+          <div className="flex flex-wrap items-center gap-6">
+            {tournament.total_cost && (
+              <div>
+                <div className="text-sm text-gray-500">Total Cost</div>
+                <div className="text-xl font-bold text-gray-900">${parseFloat(tournament.total_cost).toFixed(2)}</div>
+              </div>
+            )}
+            {costPerPlayer && (
+              <div>
+                <div className="text-sm text-gray-500">Cost Per Player ({statusCounts.in} in)</div>
+                <div className="text-xl font-bold text-green-600">${costPerPlayer}</div>
+              </div>
+            )}
+            {tournament.venmo_link && (
+              <div className="flex-1">
+                <div className="text-sm text-gray-500">Venmo Link</div>
+                <a
+                  href={tournament.venmo_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 text-sm break-all"
+                >
+                  {tournament.venmo_link}
+                </a>
+              </div>
+            )}
+          </div>
+          {costPerPlayer && tournament.venmo_link && (
+            <div className="mt-4 pt-4 border-t">
+              <button
+                onClick={handleCopyPaymentInfo}
+                className={`px-4 py-2 text-sm font-medium rounded-md ${
+                  copied
+                    ? 'bg-green-100 text-green-700 border border-green-300'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                {copied ? 'Copied!' : 'Copy Payment Message'}
+              </button>
+              <p className="text-xs text-gray-500 mt-2">
+                Copies: "${costPerPlayer} per player, Venmo: {tournament.venmo_link}"
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Messaging */}
       <div className="bg-white shadow rounded-lg p-4 mb-6">

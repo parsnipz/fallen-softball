@@ -37,6 +37,8 @@ CREATE TABLE tournaments (
   type TEXT NOT NULL CHECK (type IN ('coed', 'mens')),
   location TEXT,
   date DATE NOT NULL,
+  total_cost DECIMAL(10,2),
+  venmo_link TEXT,
   archived BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

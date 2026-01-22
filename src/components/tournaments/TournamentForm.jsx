@@ -6,6 +6,8 @@ export default function TournamentForm({ tournament, existingLocations = [], onS
     type: tournament?.type || 'coed',
     location: tournament?.location || '',
     date: tournament?.date || '',
+    total_cost: tournament?.total_cost || '',
+    venmo_link: tournament?.venmo_link || '',
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -48,6 +50,8 @@ export default function TournamentForm({ tournament, existingLocations = [], onS
         type: formData.type,
         location: formData.location.trim() || null,
         date: formData.date,
+        total_cost: formData.total_cost ? parseFloat(formData.total_cost) : null,
+        venmo_link: formData.venmo_link.trim() || null,
       })
       if (result.error) {
         setError(result.error)
@@ -61,7 +65,7 @@ export default function TournamentForm({ tournament, existingLocations = [], onS
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-md w-full">
+      <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
@@ -164,6 +168,40 @@ export default function TournamentForm({ tournament, existingLocations = [], onS
               </p>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Total Cost
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-gray-500">$</span>
+                  <input
+                    type="number"
+                    name="total_cost"
+                    value={formData.total_cost}
+                    onChange={handleChange}
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Venmo Link
+                </label>
+                <input
+                  type="url"
+                  name="venmo_link"
+                  value={formData.venmo_link}
+                  onChange={handleChange}
+                  placeholder="https://venmo.com/u/..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
             <div className="flex justify-end gap-3 pt-4 border-t">
               <button
                 type="button"
@@ -177,7 +215,7 @@ export default function TournamentForm({ tournament, existingLocations = [], onS
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
               >
-                {loading ? 'Creating...' : (tournament ? 'Update' : 'Create Tournament')}
+                {loading ? 'Saving...' : (tournament ? 'Update' : 'Create Tournament')}
               </button>
             </div>
           </form>
