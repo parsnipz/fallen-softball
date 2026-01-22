@@ -199,6 +199,27 @@ export function useTournamentDetail(tournamentId) {
     }
   }
 
+  const updateInvitationPaid = async (invitationId, paid) => {
+    try {
+      const { data, error } = await supabase
+        .from('tournament_invitations')
+        .update({ paid })
+        .eq('id', invitationId)
+        .select(`
+          *,
+          player:players(*)
+        `)
+        .single()
+
+      if (error) throw error
+      setInvitations(prev => prev.map(inv => inv.id === invitationId ? data : inv))
+      return { data, error: null }
+    } catch (err) {
+      console.error('Error updating paid status:', err)
+      return { data: null, error: err.message }
+    }
+  }
+
   const removeInvitation = async (invitationId) => {
     try {
       const { error } = await supabase
@@ -260,6 +281,7 @@ export function useTournamentDetail(tournamentId) {
     refetch: fetchTournament,
     invitePlayer,
     updateInvitationStatus,
+    updateInvitationPaid,
     removeInvitation,
     addDocument,
     deleteDocument,

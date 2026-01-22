@@ -14,6 +14,7 @@ export default function TournamentDetail({
   players,
   onInvitePlayer,
   onUpdateStatus,
+  onUpdatePaid,
   onRemoveInvitation,
   onAddDocument,
   onDeleteDocument,
@@ -30,6 +31,14 @@ export default function TournamentDetail({
       },
       { pending: 0, in: 0, out: 0 }
     )
+  }, [invitations])
+
+  // Calculate paid/unpaid players (only for "in" status)
+  const paymentStatus = useMemo(() => {
+    const inPlayers = invitations.filter(inv => inv.status === 'in')
+    const paid = inPlayers.filter(inv => inv.paid)
+    const unpaid = inPlayers.filter(inv => !inv.paid)
+    return { paid, unpaid }
   }, [invitations])
 
   // Calculate cost per player
@@ -225,6 +234,35 @@ export default function TournamentDetail({
               </p>
             </div>
           )}
+          {/* Payment Status Summary */}
+          {statusCounts.in > 0 && (
+            <div className="mt-4 pt-4 border-t">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="text-lg font-bold text-green-700">{paymentStatus.paid.length}</div>
+                    <div className="text-sm text-green-600">Paid</div>
+                  </div>
+                  {paymentStatus.paid.length > 0 && (
+                    <div className="text-xs text-green-700">
+                      {paymentStatus.paid.map(inv => `${inv.player?.first_name} ${inv.player?.last_name}`).join(', ')}
+                    </div>
+                  )}
+                </div>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="text-lg font-bold text-red-700">{paymentStatus.unpaid.length}</div>
+                    <div className="text-sm text-red-600">Unpaid</div>
+                  </div>
+                  {paymentStatus.unpaid.length > 0 && (
+                    <div className="text-xs text-red-700">
+                      {paymentStatus.unpaid.map(inv => `${inv.player?.first_name} ${inv.player?.last_name}`).join(', ')}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -280,6 +318,19 @@ export default function TournamentDetail({
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
+                  {invitation.status === 'in' && tournament.total_cost && (
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={invitation.paid || false}
+                        onChange={(e) => onUpdatePaid(invitation.id, e.target.checked)}
+                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      />
+                      <span className={`text-sm ${invitation.paid ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
+                        Paid
+                      </span>
+                    </label>
+                  )}
                   <StatusToggle
                     status={invitation.status}
                     onChange={(status) => onUpdateStatus(invitation.id, status)}

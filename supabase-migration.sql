@@ -9,3 +9,6 @@ ALTER TABLE players ADD COLUMN IF NOT EXISTS jersey_size TEXT;
 ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS location TEXT;
 ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS total_cost DECIMAL(10,2);
 ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS venmo_link TEXT;
+
+-- Add paid to tournament_invitations
+ALTER TABLE tournament_invitations ADD COLUMN IF NOT EXISTS paid BOOLEAN DEFAULT FALSE;

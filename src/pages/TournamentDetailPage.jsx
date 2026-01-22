@@ -13,6 +13,7 @@ export default function TournamentDetailPage() {
     error: tournamentError,
     invitePlayer,
     updateInvitationStatus,
+    updateInvitationPaid,
     removeInvitation,
     addDocument,
     deleteDocument,
@@ -39,6 +40,7 @@ export default function TournamentDetailPage() {
       players={players}
       onInvitePlayer={invitePlayer}
       onUpdateStatus={updateInvitationStatus}
+      onUpdatePaid={updateInvitationPaid}
       onRemoveInvitation={removeInvitation}
       onAddDocument={addDocument}
       onDeleteDocument={deleteDocument}
