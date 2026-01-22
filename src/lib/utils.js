@@ -53,8 +53,16 @@ export function generateSmsUrl(phoneNumbers) {
   const cleaned = phoneNumbers.map(cleanPhone).filter(Boolean)
   if (cleaned.length === 0) return null
 
-  // iOS uses comma, Android uses semicolon - comma works for both in most cases
-  return `sms:${cleaned.join(',')}`
+  // Detect iOS
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+
+  if (isIOS) {
+    // iOS group messaging format
+    return `sms:/open?addresses=${cleaned.join(',')}`
+  } else {
+    // Android uses semicolon for multiple recipients
+    return `sms:${cleaned.join(';')}`
+  }
 }
 
 // Copy text to clipboard
