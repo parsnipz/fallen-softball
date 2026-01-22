@@ -1,0 +1,267 @@
+import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '../lib/supabase'
+
+export function useTournaments() {
+  const [tournaments, setTournaments] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const fetchTournaments = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const { data, error: fetchError } = await supabase
+        .from('tournaments')
+        .select('*')
+        .order('date', { ascending: false })
+
+      if (fetchError) throw fetchError
+      setTournaments(data || [])
+    } catch (err) {
+      setError(err.message)
+      console.error('Error fetching tournaments:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchTournaments()
+  }, [fetchTournaments])
+
+  const addTournament = async (tournamentData) => {
+    try {
+      const { data, error } = await supabase
+        .from('tournaments')
+        .insert([tournamentData])
+        .select()
+        .single()
+
+      if (error) throw error
+      setTournaments(prev => [data, ...prev])
+      return { data, error: null }
+    } catch (err) {
+      console.error('Error adding tournament:', err)
+      return { data: null, error: err.message }
+    }
+  }
+
+  const updateTournament = async (id, tournamentData) => {
+    try {
+      const { data, error } = await supabase
+        .from('tournaments')
+        .update(tournamentData)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+      setTournaments(prev => prev.map(t => t.id === id ? data : t))
+      return { data, error: null }
+    } catch (err) {
+      console.error('Error updating tournament:', err)
+      return { data: null, error: err.message }
+    }
+  }
+
+  const deleteTournament = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('tournaments')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+      setTournaments(prev => prev.filter(t => t.id !== id))
+      return { error: null }
+    } catch (err) {
+      console.error('Error deleting tournament:', err)
+      return { error: err.message }
+    }
+  }
+
+  const archiveTournament = async (id, archived = true) => {
+    return updateTournament(id, { archived })
+  }
+
+  return {
+    tournaments,
+    loading,
+    error,
+    refetch: fetchTournaments,
+    addTournament,
+    updateTournament,
+    deleteTournament,
+    archiveTournament,
+  }
+}
+
+export function useTournamentDetail(tournamentId) {
+  const [tournament, setTournament] = useState(null)
+  const [invitations, setInvitations] = useState([])
+  const [documents, setDocuments] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const fetchTournament = useCallback(async () => {
+    if (!tournamentId) return
+
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Fetch tournament
+      const { data: tournamentData, error: tournamentError } = await supabase
+        .from('tournaments')
+        .select('*')
+        .eq('id', tournamentId)
+        .single()
+
+      if (tournamentError) throw tournamentError
+
+      // Fetch invitations with player details
+      const { data: invitationsData, error: invitationsError } = await supabase
+        .from('tournament_invitations')
+        .select(`
+          *,
+          player:players(*)
+        `)
+        .eq('tournament_id', tournamentId)
+
+      if (invitationsError) throw invitationsError
+
+      // Fetch documents
+      const { data: documentsData, error: documentsError } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('tournament_id', tournamentId)
+        .order('created_at', { ascending: false })
+
+      if (documentsError) throw documentsError
+
+      setTournament(tournamentData)
+      setInvitations(invitationsData || [])
+      setDocuments(documentsData || [])
+    } catch (err) {
+      setError(err.message)
+      console.error('Error fetching tournament detail:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [tournamentId])
+
+  useEffect(() => {
+    fetchTournament()
+  }, [fetchTournament])
+
+  const invitePlayer = async (playerId) => {
+    try {
+      const { data, error } = await supabase
+        .from('tournament_invitations')
+        .insert([{
+          tournament_id: tournamentId,
+          player_id: playerId,
+          status: 'pending'
+        }])
+        .select(`
+          *,
+          player:players(*)
+        `)
+        .single()
+
+      if (error) throw error
+      setInvitations(prev => [...prev, data])
+      return { data, error: null }
+    } catch (err) {
+      console.error('Error inviting player:', err)
+      return { data: null, error: err.message }
+    }
+  }
+
+  const updateInvitationStatus = async (invitationId, status) => {
+    try {
+      const { data, error } = await supabase
+        .from('tournament_invitations')
+        .update({ status })
+        .eq('id', invitationId)
+        .select(`
+          *,
+          player:players(*)
+        `)
+        .single()
+
+      if (error) throw error
+      setInvitations(prev => prev.map(inv => inv.id === invitationId ? data : inv))
+      return { data, error: null }
+    } catch (err) {
+      console.error('Error updating invitation:', err)
+      return { data: null, error: err.message }
+    }
+  }
+
+  const removeInvitation = async (invitationId) => {
+    try {
+      const { error } = await supabase
+        .from('tournament_invitations')
+        .delete()
+        .eq('id', invitationId)
+
+      if (error) throw error
+      setInvitations(prev => prev.filter(inv => inv.id !== invitationId))
+      return { error: null }
+    } catch (err) {
+      console.error('Error removing invitation:', err)
+      return { error: err.message }
+    }
+  }
+
+  const addDocument = async (documentData) => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .insert([{
+          ...documentData,
+          tournament_id: tournamentId
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      setDocuments(prev => [data, ...prev])
+      return { data, error: null }
+    } catch (err) {
+      console.error('Error adding document:', err)
+      return { data: null, error: err.message }
+    }
+  }
+
+  const deleteDocument = async (documentId) => {
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', documentId)
+
+      if (error) throw error
+      setDocuments(prev => prev.filter(d => d.id !== documentId))
+      return { error: null }
+    } catch (err) {
+      console.error('Error deleting document:', err)
+      return { error: err.message }
+    }
+  }
+
+  return {
+    tournament,
+    invitations,
+    documents,
+    loading,
+    error,
+    refetch: fetchTournament,
+    invitePlayer,
+    updateInvitationStatus,
+    removeInvitation,
+    addDocument,
+    deleteDocument,
+  }
+}
