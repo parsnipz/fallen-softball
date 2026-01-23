@@ -21,6 +21,7 @@ export default function TournamentDetail({
 }) {
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [customDivisor, setCustomDivisor] = useState('')
 
   // Calculate status counts
   const statusCounts = useMemo(() => {
@@ -41,11 +42,39 @@ export default function TournamentDetail({
     return { paid, unpaid }
   }, [invitations])
 
-  // Calculate cost per player
+  // Group players by status and gender
+  const playersByStatus = useMemo(() => {
+    const groupByGender = (invs) => {
+      const females = invs.filter(inv => inv.player?.gender === 'F')
+        .sort((a, b) => a.player?.last_name?.localeCompare(b.player?.last_name) || 0)
+      const males = invs.filter(inv => inv.player?.gender === 'M')
+        .sort((a, b) => a.player?.last_name?.localeCompare(b.player?.last_name) || 0)
+      const unknown = invs.filter(inv => !inv.player?.gender || (inv.player?.gender !== 'F' && inv.player?.gender !== 'M'))
+        .sort((a, b) => a.player?.last_name?.localeCompare(b.player?.last_name) || 0)
+      return { females, males, unknown }
+    }
+
+    return {
+      in: groupByGender(invitations.filter(inv => inv.status === 'in')),
+      pending: groupByGender(invitations.filter(inv => inv.status === 'pending')),
+      out: groupByGender(invitations.filter(inv => inv.status === 'out')),
+    }
+  }, [invitations])
+
+  // Calculate cost per player (rounded up to nearest dollar)
+  const divisor = customDivisor ? parseInt(customDivisor) : statusCounts.in
   const costPerPlayer = useMemo(() => {
-    if (!tournament?.total_cost || statusCounts.in === 0) return null
-    return (parseFloat(tournament.total_cost) / statusCounts.in).toFixed(2)
-  }, [tournament?.total_cost, statusCounts.in])
+    if (!tournament?.total_cost || divisor === 0) return null
+    return Math.ceil(parseFloat(tournament.total_cost) / divisor)
+  }, [tournament?.total_cost, divisor])
+
+  // Calculate total paid and amount due
+  const paymentTotals = useMemo(() => {
+    if (!costPerPlayer) return { totalPaid: 0, amountDue: 0 }
+    const totalPaid = paymentStatus.paid.length * costPerPlayer
+    const amountDue = paymentStatus.unpaid.length * costPerPlayer
+    return { totalPaid, amountDue }
+  }, [costPerPlayer, paymentStatus])
 
   // Copy payment info to clipboard
   const handleCopyPaymentInfo = () => {
@@ -55,6 +84,45 @@ export default function TournamentDetail({
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
+  }
+
+  // Helper to render player names with gender grouping
+  const renderPlayerNames = (genderGroups, isCoed) => {
+    const formatName = (inv) => `${inv.player?.first_name} ${inv.player?.last_name}`
+
+    if (isCoed) {
+      return (
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div>
+            {genderGroups.females.length > 0 && (
+              <div className="text-pink-700">
+                {genderGroups.females.map(formatName).join(', ')}
+              </div>
+            )}
+          </div>
+          <div>
+            {genderGroups.males.length > 0 && (
+              <div className="text-blue-700">
+                {genderGroups.males.map(formatName).join(', ')}
+              </div>
+            )}
+          </div>
+          {genderGroups.unknown.length > 0 && (
+            <div className="col-span-2 text-gray-600">
+              {genderGroups.unknown.map(formatName).join(', ')}
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    // For mens tournaments, just list all
+    const allPlayers = [...genderGroups.males, ...genderGroups.females, ...genderGroups.unknown]
+    return (
+      <div className="text-xs text-gray-700">
+        {allPlayers.map(formatName).join(', ')}
+      </div>
+    )
   }
 
   // Sort invitations by status (in first, then pending, then out) and name
@@ -172,17 +240,26 @@ export default function TournamentDetail({
 
       {/* Status Summary */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-green-700">{statusCounts.in}</div>
-          <div className="text-sm text-green-600">In</div>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="text-center mb-2">
+            <div className="text-2xl font-bold text-green-700">{statusCounts.in}</div>
+            <div className="text-sm text-green-600">In</div>
+          </div>
+          {statusCounts.in > 0 && renderPlayerNames(playersByStatus.in, tournament.type === 'coed')}
         </div>
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-yellow-700">{statusCounts.pending}</div>
-          <div className="text-sm text-yellow-600">Pending</div>
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="text-center mb-2">
+            <div className="text-2xl font-bold text-yellow-700">{statusCounts.pending}</div>
+            <div className="text-sm text-yellow-600">Pending</div>
+          </div>
+          {statusCounts.pending > 0 && renderPlayerNames(playersByStatus.pending, tournament.type === 'coed')}
         </div>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-red-700">{statusCounts.out}</div>
-          <div className="text-sm text-red-600">Out</div>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-center mb-2">
+            <div className="text-2xl font-bold text-red-700">{statusCounts.out}</div>
+            <div className="text-sm text-red-600">Out</div>
+          </div>
+          {statusCounts.out > 0 && renderPlayerNames(playersByStatus.out, tournament.type === 'coed')}
         </div>
       </div>
 
@@ -197,9 +274,27 @@ export default function TournamentDetail({
                 <div className="text-xl font-bold text-gray-900">${parseFloat(tournament.total_cost).toFixed(2)}</div>
               </div>
             )}
+            {tournament.total_cost && (
+              <div>
+                <div className="text-sm text-gray-500">Divide By</div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={customDivisor}
+                    onChange={(e) => setCustomDivisor(e.target.value)}
+                    placeholder={statusCounts.in.toString()}
+                    min="1"
+                    className="w-16 px-2 py-1 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <span className="text-xs text-gray-500">
+                    {customDivisor ? '(custom)' : `(${statusCounts.in} in)`}
+                  </span>
+                </div>
+              </div>
+            )}
             {costPerPlayer && (
               <div>
-                <div className="text-sm text-gray-500">Cost Per Player ({statusCounts.in} in)</div>
+                <div className="text-sm text-gray-500">Cost Per Player</div>
                 <div className="text-xl font-bold text-green-600">${costPerPlayer}</div>
               </div>
             )}
@@ -232,6 +327,21 @@ export default function TournamentDetail({
               <p className="text-xs text-gray-500 mt-2">
                 Copies: "${costPerPlayer} per player, Venmo: {tournament.venmo_link}"
               </p>
+            </div>
+          )}
+          {/* Payment Totals */}
+          {costPerPlayer && (
+            <div className="mt-4 pt-4 border-t">
+              <div className="flex gap-6 mb-4">
+                <div>
+                  <div className="text-sm text-gray-500">Total Paid</div>
+                  <div className="text-lg font-bold text-green-600">${paymentTotals.totalPaid}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Amount Due</div>
+                  <div className="text-lg font-bold text-red-600">${paymentTotals.amountDue}</div>
+                </div>
+              </div>
             </div>
           )}
           {/* Payment Status Summary */}
