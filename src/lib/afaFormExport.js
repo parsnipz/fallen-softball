@@ -222,21 +222,6 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     color: textColor,
   })
 
-  // Manager Signature (x=630)
-  if (managerPlayer && managerPlayer.signatureUrl && signatureImages[managerPlayer.signatureUrl]) {
-    const sigImg = signatureImages[managerPlayer.signatureUrl]
-    const sigAspect = sigImg.width / sigImg.height
-    const sigH = signatureHeight
-    const sigW = sigH * sigAspect
-
-    page.drawImage(sigImg, {
-      x: 630,
-      y: addressLineY - 4,
-      width: Math.min(sigW, 150),
-      height: sigH,
-    })
-  }
-
   // === PLAYER ROWS ===
   // Player table header is at ~181 from top
   // First player row starts at ~201 from top
@@ -266,6 +251,21 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
         }
       }
     }
+  }
+
+  // Manager Signature (x=630)
+  if (managerPlayer && managerPlayer.signatureUrl && signatureImages[managerPlayer.signatureUrl]) {
+    const sigImg = signatureImages[managerPlayer.signatureUrl]
+    const sigAspect = sigImg.width / sigImg.height
+    const sigH = signatureHeight
+    const sigW = sigH * sigAspect
+
+    page.drawImage(sigImg, {
+      x: 630,
+      y: addressLineY - 4,
+      width: Math.min(sigW, 150),
+      height: sigH,
+    })
   }
 
   // Draw players
