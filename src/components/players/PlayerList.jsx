@@ -262,9 +262,15 @@ export default function PlayerList({ players, loading, onAdd, onUpdate, onDelete
                       ) : '-'}
                     </td>
                     <td className="px-2 py-1.5 text-gray-500 max-w-[150px]">
-                      <div className="truncate" title={player.email || ''}>
-                        {player.email || '-'}
-                      </div>
+                      {player.email ? (
+                        <a
+                          href={`mailto:${player.email}`}
+                          className="truncate block text-blue-600 hover:text-blue-800 hover:underline"
+                          title={`Email ${player.email}`}
+                        >
+                          {player.email}
+                        </a>
+                      ) : '-'}
                     </td>
                     <td className="px-2 py-1.5 whitespace-nowrap text-gray-500">
                       {player.phone ? (
