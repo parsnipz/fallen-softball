@@ -7,6 +7,7 @@ import TournamentsPage from './pages/TournamentsPage'
 import TournamentDetailPage from './pages/TournamentDetailPage'
 import SignaturePage from './pages/SignaturePage'
 import ParksPage from './pages/ParksPage'
+import PlayerTournamentView from './pages/PlayerTournamentView'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -43,8 +44,9 @@ function AppRoutes() {
         path="/login"
         element={user ? <Navigate to="/" replace /> : <LoginPage />}
       />
-      {/* Public signature page - no auth required */}
+      {/* Public pages - no auth required */}
       <Route path="/sign/:token" element={<SignaturePage />} />
+      <Route path="/t/:id" element={<PlayerTournamentView />} />
       <Route
         path="/"
         element={
