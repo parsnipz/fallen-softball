@@ -54,8 +54,12 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
 
   // Font sizes
   const headerFontSize = 10
+  const managerFontSize = 8
   const playerFontSize = 8
   const signatureHeight = 15
+
+  // Dark blue color for all added info
+  const textColor = rgb(0, 0, 0.6)
 
   // Get "in" players with signatures (excluding coaches)
   const inPlayers = invitations
@@ -111,7 +115,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     x: 237,
     y: teamLineY,
     size: headerFontSize,
-    color: rgb(0, 0, 0),
+    color: textColor,
   })
 
   // Class (x=410)
@@ -119,7 +123,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     x: 410,
     y: teamLineY,
     size: headerFontSize,
-    color: rgb(0, 0, 0),
+    color: textColor,
   })
 
   // Division (x=484)
@@ -127,7 +131,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     x: 484,
     y: teamLineY,
     size: headerFontSize,
-    color: rgb(0, 0, 0),
+    color: textColor,
   })
 
   // AFA Membership # (x=560)
@@ -136,7 +140,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
       x: 560,
       y: teamLineY,
       size: headerFontSize,
-      color: rgb(0, 0, 0),
+      color: textColor,
     })
   }
 
@@ -147,8 +151,8 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   page.drawText(settings.managerName, {
     x: 127,
     y: managerLineY,
-    size: headerFontSize,
-    color: rgb(0, 0, 0),
+    size: managerFontSize,
+    color: textColor,
   })
 
   // Manager Email (x=318)
@@ -156,8 +160,8 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     page.drawText(settings.managerEmail, {
       x: 318,
       y: managerLineY,
-      size: headerFontSize,
-      color: rgb(0, 0, 0),
+      size: managerFontSize,
+      color: textColor,
     })
   }
 
@@ -166,8 +170,8 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     page.drawText(settings.managerPhone, {
       x: 490,
       y: managerLineY,
-      size: headerFontSize,
-      color: rgb(0, 0, 0),
+      size: managerFontSize,
+      color: textColor,
     })
   }
 
@@ -176,8 +180,8 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     page.drawText(settings.managerCell, {
       x: 645,
       y: managerLineY,
-      size: headerFontSize,
-      color: rgb(0, 0, 0),
+      size: managerFontSize,
+      color: textColor,
     })
   }
 
@@ -189,8 +193,8 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     page.drawText(settings.managerAddress, {
       x: 80,
       y: addressLineY,
-      size: headerFontSize,
-      color: rgb(0, 0, 0),
+      size: managerFontSize,
+      color: textColor,
     })
   }
 
@@ -198,33 +202,33 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   page.drawText(settings.managerCity, {
     x: 271,
     y: addressLineY,
-    size: headerFontSize,
-    color: rgb(0, 0, 0),
+    size: managerFontSize,
+    color: textColor,
   })
 
   // State (x=424)
   page.drawText(settings.managerState, {
     x: 424,
     y: addressLineY,
-    size: headerFontSize,
-    color: rgb(0, 0, 0),
+    size: managerFontSize,
+    color: textColor,
   })
 
   // Zip (x=490)
   page.drawText(settings.managerZip, {
     x: 490,
     y: addressLineY,
-    size: headerFontSize,
-    color: rgb(0, 0, 0),
+    size: managerFontSize,
+    color: textColor,
   })
 
   // === PLAYER ROWS ===
-  // Player table header is at ~175 from top
-  // First player row starts at ~195 from top
-  // Each row is 20 points tall
+  // Player table header is at ~178 from top
+  // First player row starts at ~198 from top
+  // Each row is 18 points tall
   // There are 16 player rows
-  const playerStartY = height - 195
-  const rowHeight = 20
+  const playerStartY = height - 198
+  const rowHeight = 18
   const maxPlayers = 16
 
   // Column X positions for player table
@@ -259,7 +263,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
       x: playerNameX,
       y: rowY,
       size: playerFontSize,
-      color: rgb(0, 0, 0),
+      color: textColor,
     })
 
     // Birth Date
@@ -273,7 +277,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
         x: birthDateX,
         y: rowY,
         size: playerFontSize,
-        color: rgb(0, 0, 0),
+        color: textColor,
       })
     }
 
@@ -287,7 +291,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
         x: addressX,
         y: rowY,
         size: playerFontSize,
-        color: rgb(0, 0, 0),
+        color: textColor,
       })
     }
 
@@ -309,10 +313,10 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
 
   // === COACH SECTION ===
   // Coach table is at the bottom
-  // First coach data row is at ~560 from top
-  // Second coach row is at ~584 from top
-  const coachRow1Y = height - 560
-  const coachRow2Y = height - 584
+  // First coach data row is at ~563 from top
+  // Second coach row is at ~587 from top
+  const coachRow1Y = height - 563
+  const coachRow2Y = height - 587
   const coachRows = [coachRow1Y, coachRow2Y]
 
   // Coach column X positions
@@ -330,7 +334,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
       x: coachNameX,
       y: rowY,
       size: playerFontSize,
-      color: rgb(0, 0, 0),
+      color: textColor,
     })
 
     // Coach Signature
@@ -354,7 +358,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
         x: coachEmailX,
         y: rowY,
         size: playerFontSize,
-        color: rgb(0, 0, 0),
+        color: textColor,
       })
     }
 
@@ -364,7 +368,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
         x: coachPhoneX,
         y: rowY,
         size: playerFontSize,
-        color: rgb(0, 0, 0),
+        color: textColor,
       })
     }
   }
