@@ -20,7 +20,8 @@ export default function PlayerTournamentView() {
         setError(null)
 
         // Fetch tournament with parks (lookup by short ID prefix)
-        const { data: tournamentData, error: tournamentError } = await supabase
+        // Note: We fetch tournaments and filter by ID prefix since Supabase doesn't support LIKE on UUID
+        const { data: tournamentsData, error: tournamentError } = await supabase
           .from('tournaments')
           .select(`
             *,
@@ -29,10 +30,15 @@ export default function PlayerTournamentView() {
               park:parks(*)
             )
           `)
-          .ilike('id', `${shortId}%`)
-          .single()
 
         if (tournamentError) throw tournamentError
+
+        // Find tournament where ID starts with the short ID
+        const tournamentData = tournamentsData?.find(t => t.id.startsWith(shortId))
+
+        if (!tournamentData) {
+          throw new Error('Tournament not found')
+        }
 
         // Flatten parks from junction table
         if (tournamentData.tournament_parks) {
