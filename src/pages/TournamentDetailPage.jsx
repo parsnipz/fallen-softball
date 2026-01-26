@@ -54,7 +54,7 @@ export default function TournamentDetailPage() {
       onUpdateDocument={updateDocument}
       onDeleteDocument={deleteDocument}
       onAddLodging={addLodgingOption}
-      onUpdateLodging={updateLodgingOption}
+      onUpdateLodgingOption={updateLodgingOption}
       onDeleteLodging={deleteLodgingOption}
     />
   )

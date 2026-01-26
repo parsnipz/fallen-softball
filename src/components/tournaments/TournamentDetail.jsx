@@ -23,7 +23,7 @@ export default function TournamentDetail({
   onUpdateDocument,
   onDeleteDocument,
   onAddLodging,
-  onUpdateLodging: onUpdateLodgingOption,
+  onUpdateLodgingOption,
   onDeleteLodging,
 }) {
   const [showInviteModal, setShowInviteModal] = useState(false)
