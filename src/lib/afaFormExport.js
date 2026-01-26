@@ -74,11 +74,26 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
       phone: inv.player?.phone || '',
     }))
 
-  // Separate coaches and players
+  // Separate coaches (for coach section) but include everyone in player list
   const coaches = inPlayers.filter(p => p.isCoach)
   const players = inPlayers
-    .filter(p => !p.isCoach)
     .sort((a, b) => a.lastName.localeCompare(b.lastName))
+
+  // If manager name matches a player, use their contact info
+  const managerPlayer = inPlayers.find(p =>
+    p.name.toLowerCase() === settings.managerName.toLowerCase()
+  )
+  if (managerPlayer) {
+    if (!settings.managerEmail && managerPlayer.email) {
+      settings.managerEmail = managerPlayer.email
+    }
+    if (!settings.managerPhone && managerPlayer.phone) {
+      settings.managerPhone = managerPlayer.phone
+    }
+    if (!settings.managerCell && managerPlayer.phone) {
+      settings.managerCell = managerPlayer.phone
+    }
+  }
 
   // === COORDINATE SYSTEM ===
   // PDF origin is bottom-left
