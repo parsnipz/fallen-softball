@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useParks } from '../hooks/useParks'
+import PlaceAutocomplete from '../components/common/PlaceAutocomplete'
 
 export default function ParksPage() {
   const { parks, loading, error, addPark, updatePark, deletePark } = useParks()
@@ -77,15 +78,24 @@ export default function ParksPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Park Name *
+                  Search Park *
                 </label>
-                <input
-                  type="text"
+                <PlaceAutocomplete
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, name: value })}
+                  onPlaceSelect={(place) => setFormData({
+                    name: place.name,
+                    address: place.address,
+                    city: place.city,
+                    state: place.state,
+                    maps_url: place.maps_url,
+                  })}
+                  placeholder="Search for a park or field..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Search to auto-fill park details, or enter manually below
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -136,7 +146,7 @@ export default function ParksPage() {
                   placeholder="https://maps.google.com/..."
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Paste the Google Maps share link for this park
+                  Auto-filled from search, or paste a Google Maps link
                 </p>
               </div>
               <div className="flex justify-end gap-3 pt-4">
