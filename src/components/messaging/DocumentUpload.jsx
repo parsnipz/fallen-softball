@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 
-export default function DocumentUpload({ tournamentId, documents, onAdd, onDelete }) {
+export default function DocumentUpload({ tournamentId, documents, onAdd, onDelete, onUpdate }) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
   const fileInputRef = useRef(null)
@@ -50,6 +50,7 @@ export default function DocumentUpload({ tournamentId, documents, onAdd, onDelet
         name: file.name,
         file_url: urlData.publicUrl,
         file_type: isPdf ? 'pdf' : 'image',
+        is_waiver: false,
       })
 
       // Reset input
@@ -86,6 +87,22 @@ export default function DocumentUpload({ tournamentId, documents, onAdd, onDelet
     }
   }
 
+  const handleSetWaiver = async (doc) => {
+    if (!onUpdate) return
+
+    // If this doc is already the waiver, unset it
+    if (doc.is_waiver) {
+      await onUpdate(doc.id, { is_waiver: false })
+    } else {
+      // Clear any existing waiver first, then set this one
+      const currentWaiver = documents.find(d => d.is_waiver)
+      if (currentWaiver) {
+        await onUpdate(currentWaiver.id, { is_waiver: false })
+      }
+      await onUpdate(doc.id, { is_waiver: true })
+    }
+  }
+
   const copyLink = async (url) => {
     try {
       await navigator.clipboard.writeText(url)
@@ -94,6 +111,8 @@ export default function DocumentUpload({ tournamentId, documents, onAdd, onDelet
       console.error('Copy failed:', err)
     }
   }
+
+  const waiverDoc = documents.find(d => d.is_waiver)
 
   return (
     <div className="space-y-4">
@@ -138,13 +157,22 @@ export default function DocumentUpload({ tournamentId, documents, onAdd, onDelet
         </div>
       )}
 
+      {/* Waiver status */}
+      {waiverDoc && (
+        <div className="bg-purple-50 border border-purple-200 rounded-lg px-3 py-2 text-sm text-purple-700">
+          <span className="font-medium">Waiver:</span> {waiverDoc.name}
+        </div>
+      )}
+
       {/* Document list */}
       {documents.length > 0 ? (
         <div className="space-y-2">
           {documents.map((doc) => (
             <div
               key={doc.id}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              className={`flex items-center justify-between p-3 rounded-lg ${
+                doc.is_waiver ? 'bg-purple-50 border border-purple-200' : 'bg-gray-50'
+              }`}
             >
               <div className="flex items-center gap-3 min-w-0">
                 {doc.file_type === 'pdf' ? (
@@ -165,10 +193,29 @@ export default function DocumentUpload({ tournamentId, documents, onAdd, onDelet
                   >
                     {doc.name}
                   </a>
-                  <span className="text-xs text-gray-500 uppercase">{doc.file_type}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500 uppercase">{doc.file_type}</span>
+                    {doc.is_waiver && (
+                      <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
+                        Waiver
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
+                {onUpdate && (
+                  <button
+                    onClick={() => handleSetWaiver(doc)}
+                    className={`text-sm ${
+                      doc.is_waiver
+                        ? 'text-purple-600 hover:text-purple-800 font-medium'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    {doc.is_waiver ? 'Remove Waiver' : 'Use as Waiver'}
+                  </button>
+                )}
                 <button
                   onClick={() => copyLink(doc.file_url)}
                   className="text-sm text-gray-500 hover:text-gray-700"

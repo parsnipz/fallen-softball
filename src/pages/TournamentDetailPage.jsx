@@ -18,6 +18,7 @@ export default function TournamentDetailPage() {
     updateInvitationLodging,
     removeInvitation,
     addDocument,
+    updateDocument,
     deleteDocument,
     addLodgingOption,
     updateLodgingOption,
@@ -50,6 +51,7 @@ export default function TournamentDetailPage() {
       onUpdateLodging={updateInvitationLodging}
       onRemoveInvitation={removeInvitation}
       onAddDocument={addDocument}
+      onUpdateDocument={updateDocument}
       onDeleteDocument={deleteDocument}
       onAddLodging={addLodgingOption}
       onUpdateLodging={updateLodgingOption}

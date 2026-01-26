@@ -20,6 +20,7 @@ export default function TournamentDetail({
   onUpdateLodging,
   onRemoveInvitation,
   onAddDocument,
+  onUpdateDocument,
   onDeleteDocument,
   onAddLodging,
   onUpdateLodging: onUpdateLodgingOption,
@@ -559,6 +560,7 @@ export default function TournamentDetail({
           tournamentId={tournament.id}
           documents={documents}
           onAdd={onAddDocument}
+          onUpdate={onUpdateDocument}
           onDelete={onDeleteDocument}
         />
       </div>

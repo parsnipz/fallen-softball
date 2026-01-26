@@ -4,6 +4,58 @@ import { supabase } from '../lib/supabase'
 import { formatDate } from '../lib/utils'
 import SignaturePad from '../components/signatures/SignaturePad'
 
+// Default waiver text when no custom waiver is uploaded
+function DefaultWaiverText() {
+  return (
+    <div className="text-sm text-gray-600">
+      <ul className="space-y-2 list-none">
+        <li>I, the undersigned, acting for myself (or as parent or guardian of the listed child or ward):</li>
+        <li>(1) Hereby assume all risks of injury to me (or my child or ward) from property damage and/or personal injury, including but not limited to death, arising from or related in any way to:
+          <ul className="ml-4 mt-1 space-y-1">
+            <li>(a) My presence on, or use of (or the presence of my child or ward on, or use by my child or ward of), real or personal property owned or operated by the City of St. George, and/or</li>
+            <li>(b) My participation (or the participation by my child or ward) at any time in the listed activities.</li>
+          </ul>
+        </li>
+        <li>(2) Hereby waive all claims against the City of St. George, and its agents and employees, related to the above injuries, regardless of foreseeability, including but not limited to any claims related to injury caused in whole or in part by the negligence of the City of St. George or its agents or employees.</li>
+        <li>(3) Hereby agree to indemnify and hold harmless the City of St. George, and its agents and employees from all such claims.</li>
+        <li>(4) Grant permission for my photograph to be taken and used for lawful purposes, and I acknowledge that I shall have no further claim to the resulting images or their subsequent use, unless otherwise agreed in writing.</li>
+        <li>I have read this release and waiver of liability for the American Fastpitch Association (AFA) and in consideration of being allowed to participate in any way in AFA related events and activities, the undersigned agree to not hold liable the association, directors, schools or parks where softball/baseball events are to take place.</li>
+        <li>In case I am injured during practice/games on the premises I give up my right to file a claim(s) against AFA.</li>
+        <li>I understand that I have given up substantial rights by signing this form and I have signed it freely and voluntarily.</li>
+      </ul>
+    </div>
+  )
+}
+
+// Custom waiver document display
+function CustomWaiverDocument({ waiver }) {
+  if (waiver.file_type === 'pdf') {
+    return (
+      <div className="w-full">
+        <iframe
+          src={waiver.file_url}
+          className="w-full h-[500px] border border-gray-200 rounded"
+          title="Waiver Document"
+        />
+        <p className="text-xs text-gray-500 mt-2 text-center">
+          Scroll to read the full document
+        </p>
+      </div>
+    )
+  }
+
+  // Image waiver
+  return (
+    <div className="w-full">
+      <img
+        src={waiver.file_url}
+        alt="Waiver Document"
+        className="w-full border border-gray-200 rounded"
+      />
+    </div>
+  )
+}
+
 export default function SignaturePage() {
   const { token } = useParams()
   const [loading, setLoading] = useState(true)
@@ -12,6 +64,7 @@ export default function SignaturePage() {
   const [invitation, setInvitation] = useState(null)
   const [tournament, setTournament] = useState(null)
   const [player, setPlayer] = useState(null)
+  const [waiverDocument, setWaiverDocument] = useState(null)
   const [success, setSuccess] = useState(false)
 
   useEffect(() => {
@@ -40,6 +93,20 @@ export default function SignaturePage() {
       setInvitation(data)
       setTournament(data.tournament)
       setPlayer(data.player)
+
+      // Fetch waiver document for this tournament
+      if (data.tournament?.id) {
+        const { data: waiverData } = await supabase
+          .from('documents')
+          .select('*')
+          .eq('tournament_id', data.tournament.id)
+          .eq('is_waiver', true)
+          .single()
+
+        if (waiverData) {
+          setWaiverDocument(waiverData)
+        }
+      }
 
       // Check if already signed
       if (data.signature_url) {
@@ -154,26 +221,14 @@ export default function SignaturePage() {
           </div>
         </div>
 
-        {/* Waiver Text */}
+        {/* Waiver Document or Default Text */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-4">
           <h2 className="text-lg font-semibold text-gray-900 mb-3">Player Agreement</h2>
-          <div className="text-sm text-gray-600">
-            <ul className="space-y-2 list-none">
-              <li>I, the undersigned, acting for myself (or as parent or guardian of the listed child or ward):</li>
-              <li>(1) Hereby assume all risks of injury to me (or my child or ward) from property damage and/or personal injury, including but not limited to death, arising from or related in any way to:
-                <ul className="ml-4 mt-1 space-y-1">
-                  <li>(a) My presence on, or use of (or the presence of my child or ward on, or use by my child or ward of), real or personal property owned or operated by the City of St. George, and/or</li>
-                  <li>(b) My participation (or the participation by my child or ward) at any time in the listed activities.</li>
-                </ul>
-              </li>
-              <li>(2) Hereby waive all claims against the City of St. George, and its agents and employees, related to the above injuries, regardless of foreseeability, including but not limited to any claims related to injury caused in whole or in part by the negligence of the City of St. George or its agents or employees.</li>
-              <li>(3) Hereby agree to indemnify and hold harmless the City of St. George, and its agents and employees from all such claims.</li>
-              <li>(4) Grant permission for my photograph to be taken and used for lawful purposes, and I acknowledge that I shall have no further claim to the resulting images or their subsequent use, unless otherwise agreed in writing.</li>
-              <li>I have read this release and waiver of liability for the American Fastpitch Association (AFA) and in consideration of being allowed to participate in any way in AFA related events and activities, the undersigned agree to not hold liable the association, directors, schools or parks where softball/baseball events are to take place.</li>
-              <li>In case I am injured during practice/games on the premises I give up my right to file a claim(s) against AFA.</li>
-              <li>I understand that I have given up substantial rights by signing this form and I have signed it freely and voluntarily.</li>
-            </ul>
-          </div>
+          {waiverDocument ? (
+            <CustomWaiverDocument waiver={waiverDocument} />
+          ) : (
+            <DefaultWaiverText />
+          )}
         </div>
 
         {/* Signature Pad */}

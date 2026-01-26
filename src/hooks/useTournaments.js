@@ -283,6 +283,24 @@ export function useTournamentDetail(tournamentId) {
     }
   }
 
+  const updateDocument = async (documentId, documentData) => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .update(documentData)
+        .eq('id', documentId)
+        .select()
+        .single()
+
+      if (error) throw error
+      setDocuments(prev => prev.map(d => d.id === documentId ? data : d))
+      return { data, error: null }
+    } catch (err) {
+      console.error('Error updating document:', err)
+      return { data: null, error: err.message }
+    }
+  }
+
   // Lodging operations
   const addLodgingOption = async (lodgingData) => {
     try {
@@ -379,6 +397,7 @@ export function useTournamentDetail(tournamentId) {
     updateInvitationLodging,
     removeInvitation,
     addDocument,
+    updateDocument,
     deleteDocument,
     addLodgingOption,
     updateLodgingOption,

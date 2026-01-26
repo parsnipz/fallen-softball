@@ -87,3 +87,15 @@ CREATE POLICY "Anyone can view players" ON players
 --   FOR INSERT TO anon WITH CHECK (bucket_id = 'documents' AND (storage.foldername(name))[1] = 'signatures');
 -- CREATE POLICY "Anyone can view signatures" ON storage.objects
 --   FOR SELECT TO anon USING (bucket_id = 'documents' AND (storage.foldername(name))[1] = 'signatures');
+
+-- =============================================
+-- CUSTOM WAIVER DOCUMENT FEATURE
+-- =============================================
+
+-- Add is_waiver field to documents table
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS is_waiver BOOLEAN DEFAULT FALSE;
+
+-- Allow anonymous users to view documents (for signature page to show waiver)
+DROP POLICY IF EXISTS "Anyone can view documents" ON documents;
+CREATE POLICY "Anyone can view documents" ON documents
+  FOR SELECT TO anon USING (true);
