@@ -52,6 +52,20 @@ export default function TournamentDetail({
   const [copiedLodgingPayment, setCopiedLodgingPayment] = useState(null)
   const [uploadingImage, setUploadingImage] = useState(false)
 
+  // Collapsible panel states
+  const [expandedPanels, setExpandedPanels] = useState({
+    status: true,
+    payment: true,
+    lodging: true,
+    messaging: false,
+    documents: false,
+    players: true,
+  })
+
+  const togglePanel = (panel) => {
+    setExpandedPanels(prev => ({ ...prev, [panel]: !prev[panel] }))
+  }
+
   // Calculate status counts
   const statusCounts = useMemo(() => {
     return invitations.reduce(
@@ -501,34 +515,81 @@ export default function TournamentDetail({
       </div>
 
       {/* Status Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="text-center mb-2">
-            <div className="text-2xl font-bold text-green-700">{statusCounts.in}</div>
-            <div className="text-sm text-green-600">In</div>
+      <div className="bg-white shadow rounded-lg mb-6 overflow-hidden">
+        <button
+          onClick={() => togglePanel('status')}
+          className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+        >
+          <h2 className="text-lg font-semibold text-gray-900">
+            Status Summary
+            <span className="ml-2 text-sm font-normal text-gray-500">
+              ({statusCounts.in} in, {statusCounts.pending} pending, {statusCounts.out} out)
+            </span>
+          </h2>
+          <svg
+            className={`w-5 h-5 text-gray-500 transition-transform ${expandedPanels.status ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {expandedPanels.status && (
+          <div className="p-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="text-center mb-2">
+                  <div className="text-2xl font-bold text-green-700">{statusCounts.in}</div>
+                  <div className="text-sm text-green-600">In</div>
+                </div>
+                {statusCounts.in > 0 && renderPlayerNames(playersByStatus.in, tournament.type === 'coed')}
+              </div>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="text-center mb-2">
+                  <div className="text-2xl font-bold text-yellow-700">{statusCounts.pending}</div>
+                  <div className="text-sm text-yellow-600">Pending</div>
+                </div>
+                {statusCounts.pending > 0 && renderPlayerNames(playersByStatus.pending, tournament.type === 'coed')}
+              </div>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="text-center mb-2">
+                  <div className="text-2xl font-bold text-red-700">{statusCounts.out}</div>
+                  <div className="text-sm text-red-600">Out</div>
+                </div>
+                {statusCounts.out > 0 && renderPlayerNames(playersByStatus.out, tournament.type === 'coed')}
+              </div>
+            </div>
           </div>
-          {statusCounts.in > 0 && renderPlayerNames(playersByStatus.in, tournament.type === 'coed')}
-        </div>
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div className="text-center mb-2">
-            <div className="text-2xl font-bold text-yellow-700">{statusCounts.pending}</div>
-            <div className="text-sm text-yellow-600">Pending</div>
-          </div>
-          {statusCounts.pending > 0 && renderPlayerNames(playersByStatus.pending, tournament.type === 'coed')}
-        </div>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="text-center mb-2">
-            <div className="text-2xl font-bold text-red-700">{statusCounts.out}</div>
-            <div className="text-sm text-red-600">Out</div>
-          </div>
-          {statusCounts.out > 0 && renderPlayerNames(playersByStatus.out, tournament.type === 'coed')}
-        </div>
+        )}
       </div>
 
       {/* Cost & Payment Info */}
       {(tournament.total_cost || tournament.venmo_link) && (
-        <div className="bg-white shadow rounded-lg p-4 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Cost & Payment</h2>
+        <div className="bg-white shadow rounded-lg mb-6 overflow-hidden">
+          <button
+            onClick={() => togglePanel('payment')}
+            className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+          >
+            <h2 className="text-lg font-semibold text-gray-900">
+              Cost & Payment
+              {costPerPlayer && (
+                <span className="ml-2 text-sm font-normal text-gray-500">
+                  (${costPerPlayer}/player)
+                </span>
+              )}
+            </h2>
+            <svg
+              className={`w-5 h-5 text-gray-500 transition-transform ${expandedPanels.payment ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {expandedPanels.payment && (
+          <div className="p-4">
           <div className="flex flex-wrap items-center gap-6">
             {tournament.total_cost && (
               <div>
@@ -635,13 +696,35 @@ export default function TournamentDetail({
               </div>
             </div>
           )}
+          </div>
+          )}
         </div>
       )}
 
       {/* Lodging */}
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Lodging</h2>
+      <div className="bg-white shadow rounded-lg mb-6 overflow-hidden">
+        <button
+          onClick={() => togglePanel('lodging')}
+          className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+        >
+          <h2 className="text-lg font-semibold text-gray-900">
+            Lodging
+            <span className="ml-2 text-sm font-normal text-gray-500">
+              ({lodgingOptions.length} option{lodgingOptions.length !== 1 ? 's' : ''})
+            </span>
+          </h2>
+          <svg
+            className={`w-5 h-5 text-gray-500 transition-transform ${expandedPanels.lodging ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {expandedPanels.lodging && (
+        <div className="p-4">
+        <div className="flex items-center justify-end mb-4">
           <button
             onClick={() => setShowAddLodging(!showAddLodging)}
             className="text-sm text-blue-600 hover:text-blue-800"
@@ -820,46 +903,105 @@ export default function TournamentDetail({
             })}
           </div>
         )}
+        </div>
+        )}
       </div>
 
       {/* Messaging */}
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Messaging</h2>
-        <MessageThreadCreator invitations={invitations} />
+      <div className="bg-white shadow rounded-lg mb-6 overflow-hidden">
+        <button
+          onClick={() => togglePanel('messaging')}
+          className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+        >
+          <h2 className="text-lg font-semibold text-gray-900">Messaging</h2>
+          <svg
+            className={`w-5 h-5 text-gray-500 transition-transform ${expandedPanels.messaging ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {expandedPanels.messaging && (
+        <div className="p-4">
+          <MessageThreadCreator invitations={invitations} />
+        </div>
+        )}
       </div>
 
       {/* Documents */}
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Documents</h2>
-        <DocumentUpload
-          tournamentId={tournament.id}
-          documents={documents}
-          onAdd={onAddDocument}
-          onUpdate={onUpdateDocument}
-          onDelete={onDeleteDocument}
-        />
+      <div className="bg-white shadow rounded-lg mb-6 overflow-hidden">
+        <button
+          onClick={() => togglePanel('documents')}
+          className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+        >
+          <h2 className="text-lg font-semibold text-gray-900">
+            Documents
+            <span className="ml-2 text-sm font-normal text-gray-500">
+              ({documents.length})
+            </span>
+          </h2>
+          <svg
+            className={`w-5 h-5 text-gray-500 transition-transform ${expandedPanels.documents ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {expandedPanels.documents && (
+        <div className="p-4">
+          <DocumentUpload
+            tournamentId={tournament.id}
+            documents={documents}
+            onAdd={onAddDocument}
+            onUpdate={onUpdateDocument}
+            onDelete={onDeleteDocument}
+          />
+        </div>
+        )}
       </div>
 
       {/* Invited Players - Compact View */}
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="p-4 border-b flex items-center justify-between">
+      <div className="bg-white shadow rounded-lg overflow-hidden mb-6">
+        <button
+          onClick={() => togglePanel('players')}
+          className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+        >
           <h2 className="text-lg font-semibold text-gray-900">
             Invited Players ({invitations.length})
           </h2>
-          {unsignedCount > 0 && (
-            <button
-              onClick={handleCopyAllSignatureLinks}
-              className={`px-3 py-1 text-xs font-medium rounded-md ${
-                copiedAllLinks
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-              }`}
+          <div className="flex items-center gap-2">
+            {unsignedCount > 0 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleCopyAllSignatureLinks()
+                }}
+                className={`px-3 py-1 text-xs font-medium rounded-md ${
+                  copiedAllLinks
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                }`}
+              >
+                {copiedAllLinks ? 'Copied!' : `Copy ${unsignedCount} Signature Links`}
+              </button>
+            )}
+            <svg
+              className={`w-5 h-5 text-gray-500 transition-transform ${expandedPanels.players ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              {copiedAllLinks ? 'Copied!' : `Copy ${unsignedCount} Signature Links`}
-            </button>
-          )}
-        </div>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
 
+        {expandedPanels.players && (
+        <>
         {sortedInvitations.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             No players invited yet. Click "Invite Players" to get started.
@@ -1030,6 +1172,8 @@ export default function TournamentDetail({
               </div>
             ))}
           </div>
+        )}
+        </>
         )}
       </div>
 
