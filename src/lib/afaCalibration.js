@@ -68,22 +68,22 @@ export async function createCalibrationPDF() {
   const markerColor = rgb(1, 0, 0)
   const fields = [
     // Header
-    { name: 'Team', x: 237, fromTop: 106 },
-    { name: 'Class', x: 410, fromTop: 106 },
-    { name: 'Div', x: 484, fromTop: 106 },
+    { name: 'Team', x: 237, fromTop: 56 },
+    { name: 'Class', x: 410, fromTop: 56 },
+    { name: 'Div', x: 484, fromTop: 56 },
     // Manager
-    { name: 'Manager', x: 137, fromTop: 173 },
+    { name: 'Manager', x: 127, fromTop: 133 },
     // Address
-    { name: 'City', x: 431, fromTop: 195 },
-    { name: 'State', x: 489, fromTop: 195 },
-    { name: 'Zip', x: 513, fromTop: 195 },
+    { name: 'City', x: 281, fromTop: 145 },
+    { name: 'State', x: 339, fromTop: 145 },
+    { name: 'Zip', x: 363, fromTop: 145 },
     // Player row 1
-    { name: 'P1 Name', x: 61, fromTop: 245 },
-    { name: 'P1 DOB', x: 224, fromTop: 245 },
-    { name: 'P1 Addr', x: 284, fromTop: 245 },
-    { name: 'P1 Sig', x: 630, fromTop: 245 },
+    { name: 'P1 Name', x: 61, fromTop: 235 },
+    { name: 'P1 DOB', x: 219, fromTop: 235 },
+    { name: 'P1 Addr', x: 284, fromTop: 235 },
+    { name: 'P1 Sig', x: 630, fromTop: 235 },
     // Player row 2 (to show row spacing)
-    { name: 'P2 Name', x: 61, fromTop: 245 + 24.3 },
+    { name: 'P2 Name', x: 61, fromTop: 235 + 24.3 },
     // Coach
     { name: 'Coach1', x: 101, fromTop: 592 },
     { name: 'C1 Sig', x: 303, fromTop: 592 },

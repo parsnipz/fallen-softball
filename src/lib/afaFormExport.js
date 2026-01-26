@@ -86,8 +86,8 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   // All Y positions measured from TOP of page, then converted
 
   // === HEADER SECTION (Team Name line) ===
-  // Team Name blank starts around x=237, line is ~106 from top
-  const teamLineY = height - 106
+  // Team Name blank starts around x=237, line is ~56 from top
+  const teamLineY = height - 56
 
   page.drawText(settings.teamName, {
     x: 237,
@@ -123,11 +123,11 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   }
 
   // === MANAGER SECTION ===
-  // Manager line is ~173 from top
-  const managerLineY = height - 173
+  // Manager line is ~133 from top
+  const managerLineY = height - 133
 
   page.drawText(settings.managerName, {
-    x: 137,
+    x: 127,
     y: managerLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
@@ -164,8 +164,8 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   }
 
   // === ADDRESS LINE ===
-  // Address line is ~195 from top (between manager and player rows)
-  const addressLineY = height - 195
+  // Address line is ~145 from top (between manager and player rows)
+  const addressLineY = height - 145
 
   if (settings.managerAddress) {
     page.drawText(settings.managerAddress, {
@@ -176,42 +176,42 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     })
   }
 
-  // City (x=431)
+  // City (x=281)
   page.drawText(settings.managerCity, {
-    x: 431,
+    x: 281,
     y: addressLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
   })
 
-  // State (x=489)
+  // State (x=339)
   page.drawText(settings.managerState, {
-    x: 489,
+    x: 339,
     y: addressLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
   })
 
-  // Zip (x=513)
+  // Zip (x=363)
   page.drawText(settings.managerZip, {
-    x: 513,
+    x: 363,
     y: addressLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
   })
 
   // === PLAYER ROWS ===
-  // Player table header is at ~220 from top
-  // First player row starts at ~245 from top
+  // Player table header is at ~210 from top
+  // First player row starts at ~235 from top
   // Each row is approximately 24 points tall
   // There are 16 player rows
-  const playerStartY = height - 245
+  const playerStartY = height - 235
   const rowHeight = 24.3
   const maxPlayers = 16
 
   // Column X positions for player table
   const playerNameX = 61
-  const birthDateX = 224
+  const birthDateX = 219
   const addressX = 284
   const signatureX = 630
 
