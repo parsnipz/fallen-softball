@@ -6,7 +6,6 @@ import InvitationManager from './InvitationManager'
 import StatusToggle from './StatusToggle'
 import MessageThreadCreator from '../messaging/MessageThreadCreator'
 import DocumentUpload from '../messaging/DocumentUpload'
-import SignatureManager from '../signatures/SignatureManager'
 
 export default function TournamentDetail({
   tournament,
@@ -24,6 +23,8 @@ export default function TournamentDetail({
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [copied, setCopied] = useState(false)
   const [customDivisor, setCustomDivisor] = useState('')
+  const [copiedSignatureLink, setCopiedSignatureLink] = useState(null)
+  const [copiedAllLinks, setCopiedAllLinks] = useState(false)
 
   // Calculate status counts
   const statusCounts = useMemo(() => {
@@ -159,6 +160,43 @@ export default function TournamentDetail({
 
     exportRosterPDF(tournament, invitations)
   }
+
+  // Signature link helpers
+  const baseUrl = window.location.origin
+  const getSignatureLink = (inv) => `${baseUrl}/sign/${inv.signature_token}`
+
+  const handleCopySignatureLink = async (inv) => {
+    try {
+      await navigator.clipboard.writeText(getSignatureLink(inv))
+      setCopiedSignatureLink(inv.id)
+      setTimeout(() => setCopiedSignatureLink(null), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
+  const handleCopyAllSignatureLinks = async () => {
+    const unsignedInPlayers = invitations.filter(inv => inv.status === 'in' && !inv.signature_url)
+    if (unsignedInPlayers.length === 0) return
+
+    const links = unsignedInPlayers.map(inv => {
+      const name = `${inv.player?.first_name} ${inv.player?.last_name}`
+      return `${name}: ${getSignatureLink(inv)}`
+    }).join('\n')
+
+    const message = `${tournament.name} - Signature Links:\n\n${links}`
+
+    try {
+      await navigator.clipboard.writeText(message)
+      setCopiedAllLinks(true)
+      setTimeout(() => setCopiedAllLinks(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
+  // Count unsigned "in" players
+  const unsignedCount = invitations.filter(inv => inv.status === 'in' && !inv.signature_url).length
 
   if (loading) {
     return (
@@ -385,18 +423,24 @@ export default function TournamentDetail({
         />
       </div>
 
-      {/* Signatures */}
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Signatures</h2>
-        <SignatureManager invitations={invitations} tournamentName={tournament.name} />
-      </div>
-
       {/* Invited Players */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="p-4 border-b">
+        <div className="p-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">
             Invited Players ({invitations.length})
           </h2>
+          {unsignedCount > 0 && (
+            <button
+              onClick={handleCopyAllSignatureLinks}
+              className={`px-3 py-1 text-xs font-medium rounded-md ${
+                copiedAllLinks
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+              }`}
+            >
+              {copiedAllLinks ? 'Copied!' : `Copy ${unsignedCount} Signature Links`}
+            </button>
+          )}
         </div>
 
         {sortedInvitations.length === 0 ? (
@@ -417,8 +461,24 @@ export default function TournamentDetail({
                     {invitation.status}
                   </span>
                   <div>
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-gray-900 flex items-center gap-2">
                       {invitation.player?.first_name} {invitation.player?.last_name}
+                      {invitation.status === 'in' && (
+                        invitation.signature_url ? (
+                          <span className="text-xs text-green-600 font-normal">Signed</span>
+                        ) : (
+                          <button
+                            onClick={() => handleCopySignatureLink(invitation)}
+                            className={`text-xs px-2 py-0.5 rounded ${
+                              copiedSignatureLink === invitation.id
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                            }`}
+                          >
+                            {copiedSignatureLink === invitation.id ? 'Copied!' : 'Copy Sign Link'}
+                          </button>
+                        )
+                      )}
                     </div>
                     {invitation.player?.phone && (
                       <div className="text-sm text-gray-500">{invitation.player.phone}</div>

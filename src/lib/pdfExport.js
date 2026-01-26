@@ -1,5 +1,5 @@
-import jsPDF from 'jspdf'
-import 'jspdf-autotable'
+import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 // Coach names to highlight
 const COACHES = ['Layne Reed', 'Brayden Brooks']
@@ -67,7 +67,7 @@ export function exportRosterPDF(tournament, invitations) {
     doc.text('COACHES', 14, yPos)
     yPos += 2
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: yPos,
       head: [['Name', 'Phone', 'Address', 'Signature']],
       body: coaches.map(coach => [
@@ -83,7 +83,7 @@ export function exportRosterPDF(tournament, invitations) {
         fontStyle: 'bold'
       },
       bodyStyles: {
-        fillColor: [219, 234, 254], // Light blue highlight for coaches
+        fillColor: [219, 234, 254],
       },
       columnStyles: {
         0: { cellWidth: 45 },
@@ -103,7 +103,7 @@ export function exportRosterPDF(tournament, invitations) {
   doc.text('PLAYERS', 14, yPos)
   yPos += 2
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: yPos,
     head: [['Name', 'Phone', 'Address', 'Signature']],
     body: players.map(player => [
