@@ -369,19 +369,6 @@ export default function TournamentDetail({
               AFA Form
             </button>
             <button
-              onClick={handleCalibration}
-              className="px-4 py-2 text-sm font-medium text-orange-700 bg-orange-50 border border-orange-300 rounded-md hover:bg-orange-100"
-              title="Download calibration grid to find correct coordinates"
-            >
-              Calibrate
-            </button>
-            <button
-              onClick={handleExportRoster}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              Roster PDF
-            </button>
-            <button
               onClick={() => setShowInviteModal(true)}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
             >
