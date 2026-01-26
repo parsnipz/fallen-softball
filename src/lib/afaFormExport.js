@@ -86,8 +86,8 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   // All Y positions measured from TOP of page, then converted
 
   // === HEADER SECTION (Team Name line) ===
-  // Team Name blank starts around x=237, line is ~56 from top
-  const teamLineY = height - 56
+  // Team Name blank starts around x=237, line is ~61 from top
+  const teamLineY = height - 61
 
   page.drawText(settings.teamName, {
     x: 237,
@@ -123,8 +123,8 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   }
 
   // === MANAGER SECTION ===
-  // Manager line is ~133 from top
-  const managerLineY = height - 133
+  // Manager line is ~131 from top
+  const managerLineY = height - 131
 
   page.drawText(settings.managerName, {
     x: 127,
@@ -164,8 +164,8 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   }
 
   // === ADDRESS LINE ===
-  // Address line is ~145 from top (between manager and player rows)
-  const addressLineY = height - 145
+  // Address line is ~150 from top (between manager and player rows)
+  const addressLineY = height - 150
 
   if (settings.managerAddress) {
     page.drawText(settings.managerAddress, {
@@ -176,25 +176,25 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     })
   }
 
-  // City (x=281)
+  // City (x=271)
   page.drawText(settings.managerCity, {
-    x: 281,
+    x: 271,
     y: addressLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
   })
 
-  // State (x=339)
+  // State (x=354)
   page.drawText(settings.managerState, {
-    x: 339,
+    x: 354,
     y: addressLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
   })
 
-  // Zip (x=363)
+  // Zip (x=378)
   page.drawText(settings.managerZip, {
-    x: 363,
+    x: 378,
     y: addressLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
@@ -211,7 +211,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
 
   // Column X positions for player table
   const playerNameX = 61
-  const birthDateX = 219
+  const birthDateX = 215
   const addressX = 284
   const signatureX = 630
 
@@ -268,7 +268,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
       page.drawText(addr, {
         x: addressX,
         y: rowY,
-        size: playerFontSize - 1,
+        size: playerFontSize,
         color: rgb(0, 0, 0),
       })
     }
