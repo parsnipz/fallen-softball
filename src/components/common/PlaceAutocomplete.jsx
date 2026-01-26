@@ -65,7 +65,13 @@ export default function PlaceAutocomplete({ value, onChange, onPlaceSelect, plac
   }, [])
 
   useEffect(() => {
-    if (!isLoaded || !inputRef.current || autocompleteRef.current) return
+    if (!isLoaded || !inputRef.current) return
+
+    // Clean up previous autocomplete if it exists
+    if (autocompleteRef.current && window.google?.maps?.event) {
+      window.google.maps.event.clearInstanceListeners(autocompleteRef.current)
+      autocompleteRef.current = null
+    }
 
     try {
       // Use the Places Autocomplete service for establishments (parks, fields, etc.)
@@ -128,9 +134,10 @@ export default function PlaceAutocomplete({ value, onChange, onPlaceSelect, plac
     return () => {
       if (autocompleteRef.current && window.google?.maps?.event) {
         window.google.maps.event.clearInstanceListeners(autocompleteRef.current)
+        autocompleteRef.current = null
       }
     }
-  }, [isLoaded]) // Removed onPlaceSelect from deps, using ref instead
+  }, [isLoaded])
 
   // Handle manual input changes
   const handleInputChange = (e) => {
