@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { formatDate, getStatusColor } from '../../lib/utils'
+import { formatDate, getStatusColor, createTournamentSlug } from '../../lib/utils'
 import { exportRosterPDF } from '../../lib/pdfExport'
 import { exportAFAForm } from '../../lib/afaFormExport'
 import { createCalibrationPDF } from '../../lib/afaCalibration'
@@ -293,7 +293,10 @@ export default function TournamentDetail({
   )
 
   // Share link for player view
-  const getPlayerViewLink = () => `${window.location.origin}/t/${tournament?.id}`
+  const getPlayerViewLink = () => {
+    const slug = createTournamentSlug(tournament?.name, tournament?.id)
+    return `${window.location.origin}/t/${slug}`
+  }
 
   const handleCopyShareLink = async () => {
     try {

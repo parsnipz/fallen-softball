@@ -46,7 +46,7 @@ function AppRoutes() {
       />
       {/* Public pages - no auth required */}
       <Route path="/sign/:token" element={<SignaturePage />} />
-      <Route path="/t/:id" element={<PlayerTournamentView />} />
+      <Route path="/t/:slug" element={<PlayerTournamentView />} />
       <Route
         path="/"
         element={

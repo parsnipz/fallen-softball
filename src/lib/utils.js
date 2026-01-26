@@ -140,3 +140,23 @@ export function calculateAge(dob) {
   }
   return age
 }
+
+// Create a URL-friendly slug from tournament name and ID
+export function createTournamentSlug(name, id) {
+  if (!name || !id) return id
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with dashes
+    .replace(/^-+|-+$/g, '')     // Trim leading/trailing dashes
+    .substring(0, 50)            // Limit length
+  const shortId = id.split('-')[0] // First segment of UUID (8 chars)
+  return `${slug}-${shortId}`
+}
+
+// Extract the short ID from a tournament slug
+export function extractIdFromSlug(slug) {
+  if (!slug) return null
+  // The short ID is the last segment after the final dash
+  const parts = slug.split('-')
+  return parts[parts.length - 1]
+}

@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { formatDate } from '../lib/utils'
+import { formatDate, extractIdFromSlug } from '../lib/utils'
 
 export default function PlayerTournamentView() {
-  const { id } = useParams()
+  const { slug } = useParams()
+  const shortId = extractIdFromSlug(slug)
   const [tournament, setTournament] = useState(null)
   const [invitations, setInvitations] = useState([])
   const [documents, setDocuments] = useState([])
@@ -18,7 +19,7 @@ export default function PlayerTournamentView() {
         setLoading(true)
         setError(null)
 
-        // Fetch tournament with parks
+        // Fetch tournament with parks (lookup by short ID prefix)
         const { data: tournamentData, error: tournamentError } = await supabase
           .from('tournaments')
           .select(`
@@ -28,7 +29,7 @@ export default function PlayerTournamentView() {
               park:parks(*)
             )
           `)
-          .eq('id', id)
+          .ilike('id', `${shortId}%`)
           .single()
 
         if (tournamentError) throw tournamentError
@@ -48,6 +49,8 @@ export default function PlayerTournamentView() {
           tournamentData.parks.unshift(tournamentData.park)
         }
 
+        const tournamentId = tournamentData.id
+
         // Fetch invitations with player details (excluding payment info)
         const { data: invitationsData, error: invitationsError } = await supabase
           .from('tournament_invitations')
@@ -60,7 +63,7 @@ export default function PlayerTournamentView() {
             lodging_kids,
             player:players(id, first_name, last_name, gender)
           `)
-          .eq('tournament_id', id)
+          .eq('tournament_id', tournamentId)
 
         if (invitationsError) throw invitationsError
 
@@ -68,7 +71,7 @@ export default function PlayerTournamentView() {
         const { data: documentsData, error: documentsError } = await supabase
           .from('documents')
           .select('*')
-          .eq('tournament_id', id)
+          .eq('tournament_id', tournamentId)
           .order('created_at', { ascending: false })
 
         if (documentsError) throw documentsError
@@ -77,7 +80,7 @@ export default function PlayerTournamentView() {
         const { data: lodgingData, error: lodgingError } = await supabase
           .from('tournament_lodging')
           .select('id, name, url, capacity, total_cost, venmo_link')
-          .eq('tournament_id', id)
+          .eq('tournament_id', tournamentId)
           .order('created_at', { ascending: true })
 
         if (lodgingError) throw lodgingError
@@ -94,10 +97,10 @@ export default function PlayerTournamentView() {
       }
     }
 
-    if (id) {
+    if (shortId) {
       fetchTournament()
     }
-  }, [id])
+  }, [shortId])
 
   // Calculate status counts
   const statusCounts = useMemo(() => {
