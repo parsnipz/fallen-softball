@@ -249,9 +249,17 @@ export default function PlayerList({ players, loading, onAdd, onUpdate, onDelete
                       {player.date_of_birth ? formatDate(player.date_of_birth) : '-'}
                     </td>
                     <td className="px-2 py-1.5 text-gray-500 max-w-[150px]">
-                      <div className="truncate" title={player.address || ''}>
-                        {player.address || '-'}
-                      </div>
+                      {player.address ? (
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(player.address)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="truncate block text-blue-600 hover:text-blue-800 hover:underline"
+                          title={`Get directions to ${player.address}`}
+                        >
+                          {player.address}
+                        </a>
+                      ) : '-'}
                     </td>
                     <td className="px-2 py-1.5 text-gray-500 max-w-[150px]">
                       <div className="truncate" title={player.email || ''}>
@@ -259,7 +267,15 @@ export default function PlayerList({ players, loading, onAdd, onUpdate, onDelete
                       </div>
                     </td>
                     <td className="px-2 py-1.5 whitespace-nowrap text-gray-500">
-                      {formatPhone(player.phone) || '-'}
+                      {player.phone ? (
+                        <a
+                          href={`sms:${player.phone.replace(/\D/g, '')}`}
+                          className="text-blue-600 hover:text-blue-800 hover:underline"
+                          title="Send text message"
+                        >
+                          {formatPhone(player.phone)}
+                        </a>
+                      ) : '-'}
                     </td>
                     <td className="px-2 py-1.5 whitespace-nowrap text-gray-500">
                       {player.uniform_number && (
