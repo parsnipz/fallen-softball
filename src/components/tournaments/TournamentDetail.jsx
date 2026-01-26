@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { formatDate, getStatusColor } from '../../lib/utils'
 import { exportRosterPDF } from '../../lib/pdfExport'
 import { exportAFAForm } from '../../lib/afaFormExport'
+import { createCalibrationPDF } from '../../lib/afaCalibration'
 import InvitationManager from './InvitationManager'
 import StatusToggle from './StatusToggle'
 import MessageThreadCreator from '../messaging/MessageThreadCreator'
@@ -204,6 +205,10 @@ export default function TournamentDetail({
     await exportAFAForm(tournament, invitations)
   }
 
+  const handleCalibration = async () => {
+    await createCalibrationPDF()
+  }
+
   // Signature link helpers
   const baseUrl = window.location.origin
   const getSignatureLink = (inv) => `${baseUrl}/sign/${inv.signature_token}`
@@ -345,6 +350,13 @@ export default function TournamentDetail({
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             >
               AFA Form
+            </button>
+            <button
+              onClick={handleCalibration}
+              className="px-4 py-2 text-sm font-medium text-orange-700 bg-orange-50 border border-orange-300 rounded-md hover:bg-orange-100"
+              title="Download calibration grid to find correct coordinates"
+            >
+              Calibrate
             </button>
             <button
               onClick={handleExportRoster}
