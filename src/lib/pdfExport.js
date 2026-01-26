@@ -4,7 +4,24 @@ import autoTable from 'jspdf-autotable'
 // Coach names to highlight
 const COACHES = ['Layne Reed', 'Brayden Brooks']
 
-export function exportRosterPDF(tournament, invitations) {
+// Load image as base64
+async function loadImage(url) {
+  try {
+    const response = await fetch(url)
+    const blob = await response.blob()
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result)
+      reader.onerror = () => resolve(null)
+      reader.readAsDataURL(blob)
+    })
+  } catch (err) {
+    console.error('Failed to load signature image:', err)
+    return null
+  }
+}
+
+export async function exportRosterPDF(tournament, invitations) {
   const doc = new jsPDF()
 
   // Get "in" players with signatures
@@ -22,6 +39,14 @@ export function exportRosterPDF(tournament, invitations) {
         `${inv.player?.first_name} ${inv.player?.last_name}`.toLowerCase() === coach.toLowerCase()
       )
     }))
+
+  // Load all signature images
+  const signatureImages = {}
+  for (const player of inPlayers) {
+    if (player.signatureUrl) {
+      signatureImages[player.signatureUrl] = await loadImage(player.signatureUrl)
+    }
+  }
 
   // Separate coaches and players
   const coaches = inPlayers.filter(p => p.isCoach)
@@ -60,21 +85,18 @@ export function exportRosterPDF(tournament, invitations) {
   doc.text(`${dateStr}${locationStr}`, doc.internal.pageSize.width / 2, yPos, { align: 'center' })
   yPos += 15
 
-  // Coaches section
-  if (coaches.length > 0) {
-    doc.setFontSize(12)
-    doc.setFont('helvetica', 'bold')
-    doc.text('COACHES', 14, yPos)
-    yPos += 2
+  // Helper to create table with signature images
+  const createTableWithSignatures = (playerList, startY, isCoach = false) => {
+    const rowHeight = 15
 
     autoTable(doc, {
-      startY: yPos,
+      startY: startY,
       head: [['Name', 'Phone', 'Address', 'Signature']],
-      body: coaches.map(coach => [
-        coach.name,
-        coach.phone,
-        coach.address,
-        coach.signatureUrl ? 'Signed' : ''
+      body: playerList.map(player => [
+        player.name,
+        player.phone,
+        player.address,
+        '' // Empty - we'll add images after
       ]),
       theme: 'grid',
       headStyles: {
@@ -82,8 +104,11 @@ export function exportRosterPDF(tournament, invitations) {
         textColor: 255,
         fontStyle: 'bold'
       },
-      bodyStyles: {
+      bodyStyles: isCoach ? {
         fillColor: [219, 234, 254],
+        minCellHeight: rowHeight
+      } : {
+        minCellHeight: rowHeight
       },
       columnStyles: {
         0: { cellWidth: 45 },
@@ -91,10 +116,42 @@ export function exportRosterPDF(tournament, invitations) {
         2: { cellWidth: 70 },
         3: { cellWidth: 30 }
       },
-      margin: { left: 14, right: 14 }
+      margin: { left: 14, right: 14 },
+      didDrawCell: (data) => {
+        // Add signature images to the signature column
+        if (data.section === 'body' && data.column.index === 3) {
+          const player = playerList[data.row.index]
+          if (player.signatureUrl && signatureImages[player.signatureUrl]) {
+            const imgData = signatureImages[player.signatureUrl]
+            const cellWidth = data.cell.width
+            const cellHeight = data.cell.height
+            const imgWidth = cellWidth - 2
+            const imgHeight = cellHeight - 2
+
+            doc.addImage(
+              imgData,
+              'PNG',
+              data.cell.x + 1,
+              data.cell.y + 1,
+              imgWidth,
+              imgHeight
+            )
+          }
+        }
+      }
     })
 
-    yPos = doc.lastAutoTable.finalY + 10
+    return doc.lastAutoTable.finalY
+  }
+
+  // Coaches section
+  if (coaches.length > 0) {
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text('COACHES', 14, yPos)
+    yPos += 2
+
+    yPos = createTableWithSignatures(coaches, yPos, true) + 10
   }
 
   // Players section
@@ -103,31 +160,7 @@ export function exportRosterPDF(tournament, invitations) {
   doc.text('PLAYERS', 14, yPos)
   yPos += 2
 
-  autoTable(doc, {
-    startY: yPos,
-    head: [['Name', 'Phone', 'Address', 'Signature']],
-    body: players.map(player => [
-      player.name,
-      player.phone,
-      player.address,
-      player.signatureUrl ? 'Signed' : ''
-    ]),
-    theme: 'grid',
-    headStyles: {
-      fillColor: [59, 130, 246],
-      textColor: 255,
-      fontStyle: 'bold'
-    },
-    columnStyles: {
-      0: { cellWidth: 45 },
-      1: { cellWidth: 35 },
-      2: { cellWidth: 70 },
-      3: { cellWidth: 30 }
-    },
-    margin: { left: 14, right: 14 }
-  })
-
-  yPos = doc.lastAutoTable.finalY + 15
+  yPos = createTableWithSignatures(players, yPos, false) + 15
 
   // Summary
   doc.setFontSize(11)

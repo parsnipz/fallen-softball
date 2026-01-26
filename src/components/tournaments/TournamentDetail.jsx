@@ -150,7 +150,7 @@ export default function TournamentDetail({
     })
   }, [players, invitations, tournament?.type])
 
-  const handleExportRoster = () => {
+  const handleExportRoster = async () => {
     const inPlayers = invitations.filter(inv => inv.status === 'in')
 
     if (inPlayers.length === 0) {
@@ -158,7 +158,7 @@ export default function TournamentDetail({
       return
     }
 
-    exportRosterPDF(tournament, invitations)
+    await exportRosterPDF(tournament, invitations)
   }
 
   // Signature link helpers
