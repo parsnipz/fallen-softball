@@ -80,16 +80,22 @@ export async function createCalibrationPDF() {
     { name: 'City', x: 271, fromTop: 150 },
     { name: 'State', x: 424, fromTop: 150 },
     { name: 'Zip', x: 490, fromTop: 150 },
+    // Manager extras (same line as Manager)
+    { name: 'Mgr Email', x: 370, fromTop: 128 },
+    { name: 'Mgr Phone', x: 540, fromTop: 128 },
+    { name: 'Mgr Cell', x: 680, fromTop: 128 },
     // Player row 1
     { name: 'P1 Name', x: 61, fromTop: 235 },
     { name: 'P1 DOB', x: 230, fromTop: 235 },
     { name: 'P1 Addr', x: 284, fromTop: 235 },
     { name: 'P1 Sig', x: 630, fromTop: 235 },
     // Player row 2 (to show row spacing)
-    { name: 'P2 Name', x: 61, fromTop: 235 + 24.3 },
-    // Coach
+    { name: 'P2 Name', x: 61, fromTop: 235 + 17.3 },
+    // Coach row 1
     { name: 'Coach1', x: 101, fromTop: 592 },
     { name: 'C1 Sig', x: 303, fromTop: 592 },
+    { name: 'C1 Email', x: 500, fromTop: 592 },
+    { name: 'C1 Phone', x: 680, fromTop: 592 },
   ]
 
   fields.forEach(field => {

@@ -206,7 +206,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   // Each row is approximately 24 points tall
   // There are 16 player rows
   const playerStartY = height - 235
-  const rowHeight = 24.3
+  const rowHeight = 17.3
   const maxPlayers = 16
 
   // Column X positions for player table
