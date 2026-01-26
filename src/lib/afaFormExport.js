@@ -123,8 +123,8 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   }
 
   // === MANAGER SECTION ===
-  // Manager line is ~131 from top
-  const managerLineY = height - 131
+  // Manager line is ~128 from top
+  const managerLineY = height - 128
 
   page.drawText(settings.managerName, {
     x: 127,
@@ -184,17 +184,17 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     color: rgb(0, 0, 0),
   })
 
-  // State (x=354)
+  // State (x=379)
   page.drawText(settings.managerState, {
-    x: 354,
+    x: 379,
     y: addressLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
   })
 
-  // Zip (x=378)
+  // Zip (x=478)
   page.drawText(settings.managerZip, {
-    x: 378,
+    x: 478,
     y: addressLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
@@ -211,7 +211,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
 
   // Column X positions for player table
   const playerNameX = 61
-  const birthDateX = 215
+  const birthDateX = 222
   const addressX = 284
   const signatureX = 630
 
