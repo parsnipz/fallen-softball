@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { formatDate, getStatusColor, exportToCSV } from '../../lib/utils'
+import { formatDate, getStatusColor } from '../../lib/utils'
+import { exportRosterPDF } from '../../lib/pdfExport'
 import InvitationManager from './InvitationManager'
 import StatusToggle from './StatusToggle'
 import MessageThreadCreator from '../messaging/MessageThreadCreator'
@@ -149,24 +150,14 @@ export default function TournamentDetail({
   }, [players, invitations, tournament?.type])
 
   const handleExportRoster = () => {
-    const rosterData = sortedInvitations
-      .filter(inv => inv.status === 'in')
-      .map(inv => ({
-        'Last Name': inv.player?.last_name || '',
-        'First Name': inv.player?.first_name || '',
-        'Date of Birth': inv.player?.date_of_birth || '',
-        'Phone': inv.player?.phone || '',
-        'Email': inv.player?.email || '',
-        'Address': inv.player?.address || '',
-      }))
+    const inPlayers = invitations.filter(inv => inv.status === 'in')
 
-    if (rosterData.length === 0) {
+    if (inPlayers.length === 0) {
       alert('No players are marked as "In" to export')
       return
     }
 
-    const filename = `${tournament.name.replace(/[^a-z0-9]/gi, '_')}_roster`
-    exportToCSV(rosterData, filename)
+    exportRosterPDF(tournament, invitations)
   }
 
   if (loading) {
@@ -227,7 +218,7 @@ export default function TournamentDetail({
               onClick={handleExportRoster}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             >
-              Export Roster
+              Export Roster PDF
             </button>
             <button
               onClick={() => setShowInviteModal(true)}
