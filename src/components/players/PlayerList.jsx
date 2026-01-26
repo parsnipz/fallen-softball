@@ -182,51 +182,51 @@ export default function PlayerList({ players, loading, onAdd, onUpdate, onDelete
         Showing {sortedPlayers.length} of {players.length} players
       </div>
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
+      <div className="bg-white shadow rounded-lg overflow-hidden text-xs">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th
                   onClick={() => handleSort('last_name')}
-                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 >
                   Name <SortIcon field="last_name" />
                 </th>
                 <th
                   onClick={() => handleSort('date_of_birth')}
-                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 >
                   DOB <SortIcon field="date_of_birth" />
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Address
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  onClick={() => handleSort('email')}
+                  className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                >
+                  Email <SortIcon field="email" />
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Phone
                 </th>
                 <th
-                  onClick={() => handleSort('gender')}
-                  className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 w-12"
-                >
-                  G <SortIcon field="gender" />
-                </th>
-                <th
                   onClick={() => handleSort('uniform_number')}
-                  className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 >
                   Uniform <SortIcon field="uniform_number" />
                 </th>
                 <th
                   onClick={() => handleSort('jersey_size')}
-                  className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 >
                   Size <SortIcon field="jersey_size" />
                 </th>
-                <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Jerseys
                 </th>
-                <th className="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                <th className="px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-14">
                 </th>
               </tr>
             </thead>
@@ -240,56 +240,58 @@ export default function PlayerList({ players, loading, onAdd, onUpdate, onDelete
               ) : (
                 sortedPlayers.map((player) => (
                   <tr key={player.id} className="hover:bg-gray-50">
-                    <td className="px-3 py-2">
-                      <div className="font-medium text-gray-900 text-sm">
+                    <td className="px-2 py-1.5">
+                      <div className="font-medium text-gray-900">
                         {player.first_name} {player.last_name}
                       </div>
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-2 py-1.5 whitespace-nowrap text-gray-500">
                       {player.date_of_birth ? formatDate(player.date_of_birth) : '-'}
                     </td>
-                    <td className="px-3 py-2 text-sm text-gray-500 max-w-[200px]">
+                    <td className="px-2 py-1.5 text-gray-500 max-w-[150px]">
                       <div className="truncate" title={player.address || ''}>
                         {player.address || '-'}
                       </div>
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-2 py-1.5 text-gray-500 max-w-[150px]">
+                      <div className="truncate" title={player.email || ''}>
+                        {player.email || '-'}
+                      </div>
+                    </td>
+                    <td className="px-2 py-1.5 whitespace-nowrap text-gray-500">
                       {formatPhone(player.phone) || '-'}
                     </td>
-                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-500 text-center">
-                      {player.gender || '-'}
-                    </td>
-                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-2 py-1.5 whitespace-nowrap text-gray-500">
                       {player.uniform_number && (
                         <span className="font-medium">#{player.uniform_number}</span>
                       )}
                       {player.jersey_name && (
-                        <span className="text-xs text-gray-400 ml-1">"{player.jersey_name}"</span>
+                        <span className="text-gray-400 ml-1">"{player.jersey_name}"</span>
                       )}
                       {!player.uniform_number && !player.jersey_name && '-'}
                     </td>
-                    <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-500">
+                    <td className="px-2 py-1.5 whitespace-nowrap text-gray-500">
                       {player.jersey_size || '-'}
                     </td>
-                    <td className="px-2 py-2">
+                    <td className="px-2 py-1.5">
                       <JerseySquares types={player.jersey_types} />
                     </td>
-                    <td className="px-2 py-2 whitespace-nowrap text-right">
+                    <td className="px-2 py-1.5 whitespace-nowrap text-right">
                       <button
                         onClick={() => handleEdit(player)}
-                        className="text-gray-400 hover:text-blue-600 p-1"
+                        className="text-gray-400 hover:text-blue-600 p-0.5"
                         title="Edit"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
                       </button>
                       <button
                         onClick={() => setDeleteConfirm(player)}
-                        className="text-gray-400 hover:text-red-600 p-1 ml-1"
+                        className="text-gray-400 hover:text-red-600 p-0.5 ml-0.5"
                         title="Delete"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
