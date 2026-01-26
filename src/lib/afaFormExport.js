@@ -133,30 +133,30 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     color: rgb(0, 0, 0),
   })
 
-  // Manager Email (x=370)
+  // Manager Email (x=318)
   if (settings.managerEmail) {
     page.drawText(settings.managerEmail, {
-      x: 370,
+      x: 318,
       y: managerLineY,
       size: headerFontSize,
       color: rgb(0, 0, 0),
     })
   }
 
-  // Manager Phone (x=540)
+  // Manager Phone (x=490)
   if (settings.managerPhone) {
     page.drawText(settings.managerPhone, {
-      x: 540,
+      x: 490,
       y: managerLineY,
       size: headerFontSize,
       color: rgb(0, 0, 0),
     })
   }
 
-  // Manager Cell (x=680)
+  // Manager Cell (x=645)
   if (settings.managerCell) {
     page.drawText(settings.managerCell, {
-      x: 680,
+      x: 645,
       y: managerLineY,
       size: headerFontSize,
       color: rgb(0, 0, 0),
@@ -206,7 +206,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   // Each row is approximately 24 points tall
   // There are 16 player rows
   const playerStartY = height - 235
-  const rowHeight = 17.3
+  const rowHeight = 19.3
   const maxPlayers = 16
 
   // Column X positions for player table
@@ -291,17 +291,17 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
 
   // === COACH SECTION ===
   // Coach table is at the bottom
-  // First coach data row is at ~592 from top
-  // Second coach row is at ~616 from top (may be off page)
-  const coachRow1Y = height - 592
-  const coachRow2Y = height - 616
+  // First coach data row is at ~560 from top
+  // Second coach row is at ~584 from top
+  const coachRow1Y = height - 560
+  const coachRow2Y = height - 584
   const coachRows = [coachRow1Y, coachRow2Y]
 
   // Coach column X positions
   const coachNameX = 101
   const coachSigX = 303
-  const coachEmailX = 500
-  const coachPhoneX = 680
+  const coachEmailX = 490
+  const coachPhoneX = 660
 
   for (let i = 0; i < Math.min(coaches.length, 2); i++) {
     const coach = coaches[i]
