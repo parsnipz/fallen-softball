@@ -86,8 +86,8 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   // All Y positions measured from TOP of page, then converted
 
   // === HEADER SECTION (Team Name line) ===
-  // Team Name blank starts around x=155, line is ~68 from top
-  const teamLineY = height - 68
+  // Team Name blank starts around x=155, line is ~55 from top
+  const teamLineY = height - 55
 
   page.drawText(settings.teamName, {
     x: 158,
@@ -123,8 +123,8 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   }
 
   // === MANAGER SECTION ===
-  // Manager line is ~108 from top
-  const managerLineY = height - 108
+  // Manager line is ~95 from top
+  const managerLineY = height - 95
 
   page.drawText(settings.managerName, {
     x: 95,
@@ -164,8 +164,8 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   }
 
   // === ADDRESS LINE ===
-  // Address line is ~123 from top
-  const addressLineY = height - 123
+  // Address line is ~110 from top
+  const addressLineY = height - 110
 
   if (settings.managerAddress) {
     page.drawText(settings.managerAddress, {
@@ -201,11 +201,11 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   })
 
   // === PLAYER ROWS ===
-  // Player table header is at ~140 from top
-  // First player row starts at ~156 from top
+  // Player table header is at ~125 from top
+  // First player row starts at ~143 from top
   // Each row is approximately 24 points tall
-  // There are 16 player row lines
-  const playerStartY = height - 156
+  // There are 16 player rows
+  const playerStartY = height - 143
   const rowHeight = 24.3
   const maxPlayers = 16
 
@@ -291,11 +291,11 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
 
   // === COACH SECTION ===
   // Coach table is at the bottom
-  // Coach header row is at ~546 from top
-  // First coach data row is at ~564 from top
-  // Second coach row is at ~588 from top
-  const coachRow1Y = height - 564
-  const coachRow2Y = height - 588
+  // Coach header row is at ~530 from top
+  // First coach data row is at ~548 from top
+  // Second coach row is at ~572 from top
+  const coachRow1Y = height - 548
+  const coachRow2Y = height - 572
   const coachRows = [coachRow1Y, coachRow2Y]
 
   // Coach column X positions
