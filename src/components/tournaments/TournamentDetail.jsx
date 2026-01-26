@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { formatDate, getStatusColor } from '../../lib/utils'
 import { exportRosterPDF } from '../../lib/pdfExport'
+import { exportAFAForm } from '../../lib/afaFormExport'
 import InvitationManager from './InvitationManager'
 import StatusToggle from './StatusToggle'
 import MessageThreadCreator from '../messaging/MessageThreadCreator'
@@ -192,6 +193,17 @@ export default function TournamentDetail({
     await exportRosterPDF(tournament, invitations)
   }
 
+  const handleExportAFAForm = async () => {
+    const inPlayers = invitations.filter(inv => inv.status === 'in')
+
+    if (inPlayers.length === 0) {
+      alert('No players are marked as "In" to export')
+      return
+    }
+
+    await exportAFAForm(tournament, invitations)
+  }
+
   // Signature link helpers
   const baseUrl = window.location.origin
   const getSignatureLink = (inv) => `${baseUrl}/sign/${inv.signature_token}`
@@ -329,10 +341,16 @@ export default function TournamentDetail({
           </div>
           <div className="flex gap-2">
             <button
+              onClick={handleExportAFAForm}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              AFA Form
+            </button>
+            <button
               onClick={handleExportRoster}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             >
-              Export Roster PDF
+              Roster PDF
             </button>
             <button
               onClick={() => setShowInviteModal(true)}
