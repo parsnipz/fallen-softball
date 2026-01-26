@@ -5,6 +5,7 @@ import InvitationManager from './InvitationManager'
 import StatusToggle from './StatusToggle'
 import MessageThreadCreator from '../messaging/MessageThreadCreator'
 import DocumentUpload from '../messaging/DocumentUpload'
+import SignatureManager from '../signatures/SignatureManager'
 
 export default function TournamentDetail({
   tournament,
@@ -391,6 +392,12 @@ export default function TournamentDetail({
           onAdd={onAddDocument}
           onDelete={onDeleteDocument}
         />
+      </div>
+
+      {/* Signatures */}
+      <div className="bg-white shadow rounded-lg p-4 mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Signatures</h2>
+        <SignatureManager invitations={invitations} tournamentName={tournament.name} />
       </div>
 
       {/* Invited Players */}

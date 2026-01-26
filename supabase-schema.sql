@@ -50,6 +50,9 @@ CREATE TABLE tournament_invitations (
   player_id UUID NOT NULL REFERENCES players(id) ON DELETE CASCADE,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in', 'out')),
   paid BOOLEAN DEFAULT FALSE,
+  signature_token UUID DEFAULT uuid_generate_v4(),
+  signature_url TEXT,
+  signed_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(tournament_id, player_id)

@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage'
 import PlayersPage from './pages/PlayersPage'
 import TournamentsPage from './pages/TournamentsPage'
 import TournamentDetailPage from './pages/TournamentDetailPage'
+import SignaturePage from './pages/SignaturePage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -41,6 +42,8 @@ function AppRoutes() {
         path="/login"
         element={user ? <Navigate to="/" replace /> : <LoginPage />}
       />
+      {/* Public signature page - no auth required */}
+      <Route path="/sign/:token" element={<SignaturePage />} />
       <Route
         path="/"
         element={
