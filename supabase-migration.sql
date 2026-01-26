@@ -200,3 +200,7 @@ ALTER TABLE tournament_lodging ADD COLUMN IF NOT EXISTS additional_fees DECIMAL(
 
 -- Add cost_divisor to tournaments (custom number to divide cost by, defaults to number of "in" players)
 ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS cost_divisor INTEGER;
+
+-- Add address and maps_url to tournament_lodging
+ALTER TABLE tournament_lodging ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE tournament_lodging ADD COLUMN IF NOT EXISTS maps_url TEXT;

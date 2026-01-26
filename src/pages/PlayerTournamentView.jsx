@@ -85,7 +85,7 @@ export default function PlayerTournamentView() {
         // Fetch lodging options
         const { data: lodgingData, error: lodgingError } = await supabase
           .from('tournament_lodging')
-          .select('id, name, url, capacity, total_cost, additional_fees, venmo_link')
+          .select('id, name, url, capacity, total_cost, additional_fees, venmo_link, address, maps_url')
           .eq('tournament_id', tournamentId)
           .order('created_at', { ascending: true })
 
@@ -329,20 +329,39 @@ export default function PlayerTournamentView() {
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <h3 className="font-medium text-gray-900">{option.name}</h3>
+                        {option.address && (
+                          <div className="text-sm text-gray-500">{option.address}</div>
+                        )}
                         <div className="text-sm text-gray-500">
                           {stats.totalPeople} / {option.capacity || '∞'} people
                         </div>
                       </div>
-                      {option.url && (
-                        <a
-                          href={option.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-800"
-                        >
-                          View Details
-                        </a>
-                      )}
+                      <div className="flex items-center gap-3">
+                        {option.maps_url && (
+                          <a
+                            href={option.maps_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Directions
+                          </a>
+                        )}
+                        {option.url && (
+                          <a
+                            href={option.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            Listing
+                          </a>
+                        )}
+                      </div>
                     </div>
 
                     {stats.costPerPerson && (

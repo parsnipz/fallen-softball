@@ -50,7 +50,8 @@ export default function TournamentDetail({
   const [copiedSignatureLink, setCopiedSignatureLink] = useState(null)
   const [copiedAllLinks, setCopiedAllLinks] = useState(false)
   const [showAddLodging, setShowAddLodging] = useState(false)
-  const [newLodging, setNewLodging] = useState({ name: '', url: '', capacity: '', total_cost: '', additional_fees: '', venmo_link: '' })
+  const [newLodging, setNewLodging] = useState({ name: '', url: '', capacity: '', total_cost: '', additional_fees: '', venmo_link: '', address: '', maps_url: '' })
+  const [editingLodging, setEditingLodging] = useState(null)
   const [copiedLodgingPayment, setCopiedLodgingPayment] = useState(null)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [copiedShareLink, setCopiedShareLink] = useState(false)
@@ -375,10 +376,41 @@ export default function TournamentDetail({
       capacity: newLodging.capacity ? parseInt(newLodging.capacity) : 0,
       total_cost: newLodging.total_cost ? parseFloat(newLodging.total_cost) : null,
       additional_fees: newLodging.additional_fees ? parseFloat(newLodging.additional_fees) : null,
-      venmo_link: newLodging.venmo_link.trim() || null
+      venmo_link: newLodging.venmo_link.trim() || null,
+      address: newLodging.address.trim() || null,
+      maps_url: newLodging.maps_url.trim() || null
     })
-    setNewLodging({ name: '', url: '', capacity: '', total_cost: '', additional_fees: '', venmo_link: '' })
+    setNewLodging({ name: '', url: '', capacity: '', total_cost: '', additional_fees: '', venmo_link: '', address: '', maps_url: '' })
     setShowAddLodging(false)
+  }
+
+  const handleOpenEditLodging = (option) => {
+    setEditingLodging({
+      id: option.id,
+      name: option.name || '',
+      url: option.url || '',
+      capacity: option.capacity || '',
+      total_cost: option.total_cost || '',
+      additional_fees: option.additional_fees || '',
+      venmo_link: option.venmo_link || '',
+      address: option.address || '',
+      maps_url: option.maps_url || ''
+    })
+  }
+
+  const handleSaveEditLodging = async () => {
+    if (!editingLodging?.name.trim()) return
+    await onUpdateLodgingOption(editingLodging.id, {
+      name: editingLodging.name.trim(),
+      url: editingLodging.url.trim() || null,
+      capacity: editingLodging.capacity ? parseInt(editingLodging.capacity) : 0,
+      total_cost: editingLodging.total_cost ? parseFloat(editingLodging.total_cost) : null,
+      additional_fees: editingLodging.additional_fees ? parseFloat(editingLodging.additional_fees) : null,
+      venmo_link: editingLodging.venmo_link.trim() || null,
+      address: editingLodging.address.trim() || null,
+      maps_url: editingLodging.maps_url.trim() || null
+    })
+    setEditingLodging(null)
   }
 
   const handleCopyLodgingPayment = (option) => {
@@ -794,18 +826,18 @@ export default function TournamentDetail({
         </div>
 
         {showAddLodging && (
-          <div className="bg-gray-50 rounded-lg p-3 mb-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
+          <div className="bg-gray-50 rounded-lg p-3 mb-4 space-y-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <input
                 type="text"
-                placeholder="Name (e.g., Airbnb #1)"
+                placeholder="Name (e.g., Airbnb #1) *"
                 value={newLodging.name}
                 onChange={(e) => setNewLodging(prev => ({ ...prev, name: e.target.value }))}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
               />
               <input
                 type="url"
-                placeholder="URL (optional)"
+                placeholder="Listing URL"
                 value={newLodging.url}
                 onChange={(e) => setNewLodging(prev => ({ ...prev, url: e.target.value }))}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
@@ -817,6 +849,22 @@ export default function TournamentDetail({
                 onChange={(e) => setNewLodging(prev => ({ ...prev, capacity: e.target.value }))}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
                 min="0"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="text"
+                placeholder="Address"
+                value={newLodging.address}
+                onChange={(e) => setNewLodging(prev => ({ ...prev, address: e.target.value }))}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              />
+              <input
+                type="url"
+                placeholder="Google Maps URL"
+                value={newLodging.maps_url}
+                onChange={(e) => setNewLodging(prev => ({ ...prev, maps_url: e.target.value }))}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
               />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -868,23 +916,41 @@ export default function TournamentDetail({
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
                       <span className="font-medium text-gray-900">{option.name}</span>
-                      {option.url ? (
+                      {option.url && (
                         <a
                           href={option.url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs text-blue-600 hover:text-blue-800"
                         >
-                          View Link
+                          Listing
                         </a>
-                      ) : (
-                        <span className="text-xs text-gray-400">No link</span>
+                      )}
+                      {option.maps_url && (
+                        <a
+                          href={option.maps_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          Directions
+                        </a>
                       )}
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="text-sm text-gray-600">
                         {stats.totalPeople} / {option.capacity || '∞'} people
                       </span>
+                      <button
+                        onClick={() => handleOpenEditLodging(option)}
+                        className="text-xs text-blue-600 hover:text-blue-800"
+                      >
+                        Edit
+                      </button>
                       <button
                         onClick={() => onDeleteLodging(option.id)}
                         className="text-xs text-red-600 hover:text-red-800"
@@ -893,6 +959,11 @@ export default function TournamentDetail({
                       </button>
                     </div>
                   </div>
+
+                  {/* Address */}
+                  {option.address && (
+                    <div className="text-xs text-gray-500 mb-2">{option.address}</div>
+                  )}
 
                   {/* Cost info */}
                   {(option.total_cost || option.additional_fees) && (
@@ -1261,6 +1332,113 @@ export default function TournamentDetail({
           onInvite={onInvitePlayer}
           onClose={() => setShowInviteModal(false)}
         />
+      )}
+
+      {/* Edit Lodging Modal */}
+      {editingLodging && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-lg font-semibold mb-4">Edit Lodging</h2>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input
+                  type="text"
+                  value={editingLodging.name}
+                  onChange={(e) => setEditingLodging({ ...editingLodging, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Listing URL</label>
+                  <input
+                    type="url"
+                    value={editingLodging.url}
+                    onChange={(e) => setEditingLodging({ ...editingLodging, url: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
+                  <input
+                    type="number"
+                    value={editingLodging.capacity}
+                    onChange={(e) => setEditingLodging({ ...editingLodging, capacity: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min="0"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <input
+                  type="text"
+                  value={editingLodging.address}
+                  onChange={(e) => setEditingLodging({ ...editingLodging, address: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Google Maps URL</label>
+                <input
+                  type="url"
+                  value={editingLodging.maps_url}
+                  onChange={(e) => setEditingLodging({ ...editingLodging, maps_url: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Total Cost ($)</label>
+                  <input
+                    type="number"
+                    value={editingLodging.total_cost}
+                    onChange={(e) => setEditingLodging({ ...editingLodging, total_cost: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Add'l Fees ($)</label>
+                  <input
+                    type="number"
+                    value={editingLodging.additional_fees}
+                    onChange={(e) => setEditingLodging({ ...editingLodging, additional_fees: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Venmo Link</label>
+                  <input
+                    type="url"
+                    value={editingLodging.venmo_link}
+                    onChange={(e) => setEditingLodging({ ...editingLodging, venmo_link: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  onClick={() => setEditingLodging(null)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEditLodging}
+                  disabled={!editingLodging.name.trim()}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Edit Tournament Modal */}
