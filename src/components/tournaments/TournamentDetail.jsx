@@ -32,7 +32,8 @@ export default function TournamentDetail({
   const [copiedSignatureLink, setCopiedSignatureLink] = useState(null)
   const [copiedAllLinks, setCopiedAllLinks] = useState(false)
   const [showAddLodging, setShowAddLodging] = useState(false)
-  const [newLodging, setNewLodging] = useState({ name: '', url: '', capacity: '' })
+  const [newLodging, setNewLodging] = useState({ name: '', url: '', capacity: '', total_cost: '', venmo_link: '' })
+  const [copiedLodgingPayment, setCopiedLodgingPayment] = useState(null)
 
   // Calculate status counts
   const statusCounts = useMemo(() => {
@@ -93,7 +94,18 @@ export default function TournamentDetail({
     lodgingOptions.forEach(opt => {
       const lodgingInvitations = invitations.filter(inv => inv.lodging_id === opt.id && inv.lodging_status === 'in')
       const totalPeople = lodgingInvitations.reduce((sum, inv) => sum + (inv.lodging_adults || 1) + (inv.lodging_kids || 0), 0)
-      stats[opt.id] = { count: lodgingInvitations.length, totalPeople }
+      const paidInvitations = lodgingInvitations.filter(inv => inv.lodging_paid)
+      const unpaidInvitations = lodgingInvitations.filter(inv => !inv.lodging_paid)
+      const costPerPerson = opt.total_cost && totalPeople > 0 ? Math.ceil(parseFloat(opt.total_cost) / totalPeople) : null
+      stats[opt.id] = {
+        count: lodgingInvitations.length,
+        totalPeople,
+        paid: paidInvitations,
+        unpaid: unpaidInvitations,
+        costPerPerson,
+        totalPaid: costPerPerson ? paidInvitations.reduce((sum, inv) => sum + ((inv.lodging_adults || 1) + (inv.lodging_kids || 0)) * costPerPerson, 0) : 0,
+        amountDue: costPerPerson ? unpaidInvitations.reduce((sum, inv) => sum + ((inv.lodging_adults || 1) + (inv.lodging_kids || 0)) * costPerPerson, 0) : 0,
+      }
     })
     return stats
   }, [invitations, lodgingOptions])
@@ -220,10 +232,22 @@ export default function TournamentDetail({
     await onAddLodging({
       name: newLodging.name.trim(),
       url: newLodging.url.trim() || null,
-      capacity: newLodging.capacity ? parseInt(newLodging.capacity) : 0
+      capacity: newLodging.capacity ? parseInt(newLodging.capacity) : 0,
+      total_cost: newLodging.total_cost ? parseFloat(newLodging.total_cost) : null,
+      venmo_link: newLodging.venmo_link.trim() || null
     })
-    setNewLodging({ name: '', url: '', capacity: '' })
+    setNewLodging({ name: '', url: '', capacity: '', total_cost: '', venmo_link: '' })
     setShowAddLodging(false)
+  }
+
+  const handleCopyLodgingPayment = (option) => {
+    const stats = lodgingStats[option.id]
+    if (!stats?.costPerPerson || !option.venmo_link) return
+    const message = `$${stats.costPerPerson} per person for lodging, Venmo: ${option.venmo_link}`
+    navigator.clipboard.writeText(message).then(() => {
+      setCopiedLodgingPayment(option.id)
+      setTimeout(() => setCopiedLodgingPayment(null), 2000)
+    })
   }
 
   const handleLodgingStatusChange = (invitation, newStatus) => {
@@ -472,7 +496,7 @@ export default function TournamentDetail({
 
         {showAddLodging && (
           <div className="bg-gray-50 rounded-lg p-3 mb-4">
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
               <input
                 type="text"
                 placeholder="Name (e.g., Airbnb #1)"
@@ -495,6 +519,24 @@ export default function TournamentDetail({
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
                 min="0"
               />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <input
+                type="number"
+                placeholder="Total Cost ($)"
+                value={newLodging.total_cost}
+                onChange={(e) => setNewLodging(prev => ({ ...prev, total_cost: e.target.value }))}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                min="0"
+                step="0.01"
+              />
+              <input
+                type="url"
+                placeholder="Venmo Link"
+                value={newLodging.venmo_link}
+                onChange={(e) => setNewLodging(prev => ({ ...prev, venmo_link: e.target.value }))}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              />
               <button
                 onClick={handleAddLodging}
                 disabled={!newLodging.name.trim()}
@@ -509,37 +551,114 @@ export default function TournamentDetail({
         {lodgingOptions.length === 0 ? (
           <p className="text-sm text-gray-500">No lodging options added yet.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-4">
             {lodgingOptions.map(option => {
-              const stats = lodgingStats[option.id] || { count: 0, totalPeople: 0 }
+              const stats = lodgingStats[option.id] || { count: 0, totalPeople: 0, paid: [], unpaid: [], costPerPerson: null }
               return (
-                <div key={option.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium text-gray-900">{option.name}</span>
-                    {option.url ? (
-                      <a
-                        href={option.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:text-blue-800"
+                <div key={option.id} className="bg-gray-50 rounded-lg p-3">
+                  {/* Header row */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-gray-900">{option.name}</span>
+                      {option.url ? (
+                        <a
+                          href={option.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          View Link
+                        </a>
+                      ) : (
+                        <span className="text-xs text-gray-400">No link</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm text-gray-600">
+                        {stats.totalPeople} / {option.capacity || '∞'} people
+                      </span>
+                      <button
+                        onClick={() => onDeleteLodging(option.id)}
+                        className="text-xs text-red-600 hover:text-red-800"
                       >
-                        View Link
-                      </a>
-                    ) : (
-                      <span className="text-xs text-gray-400">No link</span>
-                    )}
+                        Remove
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-600">
-                      {stats.totalPeople} / {option.capacity || '∞'} people
-                    </span>
-                    <button
-                      onClick={() => onDeleteLodging(option.id)}
-                      className="text-xs text-red-600 hover:text-red-800"
-                    >
-                      Remove
-                    </button>
-                  </div>
+
+                  {/* Cost info */}
+                  {option.total_cost && (
+                    <div className="border-t border-gray-200 pt-2 mt-2">
+                      <div className="flex flex-wrap items-center gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-500">Total: </span>
+                          <span className="font-medium">${parseFloat(option.total_cost).toFixed(2)}</span>
+                        </div>
+                        {stats.costPerPerson && (
+                          <div>
+                            <span className="text-gray-500">Per Person: </span>
+                            <span className="font-medium text-green-600">${stats.costPerPerson}</span>
+                          </div>
+                        )}
+                        {option.venmo_link && (
+                          <a
+                            href={option.venmo_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            Venmo
+                          </a>
+                        )}
+                        {stats.costPerPerson && option.venmo_link && (
+                          <button
+                            onClick={() => handleCopyLodgingPayment(option)}
+                            className={`text-xs px-2 py-1 rounded ${
+                              copiedLodgingPayment === option.id
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                            }`}
+                          >
+                            {copiedLodgingPayment === option.id ? 'Copied!' : 'Copy Payment'}
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Payment totals */}
+                      {stats.costPerPerson && (
+                        <div className="flex gap-4 mt-2 text-xs">
+                          <div>
+                            <span className="text-gray-500">Paid: </span>
+                            <span className="font-medium text-green-600">${stats.totalPaid}</span>
+                            <span className="text-gray-400"> ({stats.paid.length})</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Due: </span>
+                            <span className="font-medium text-red-600">${stats.amountDue}</span>
+                            <span className="text-gray-400"> ({stats.unpaid.length})</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Paid/Unpaid names */}
+                      {stats.costPerPerson && stats.count > 0 && (
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          {stats.paid.length > 0 && (
+                            <div className="text-xs text-green-700">
+                              <span className="font-medium">Paid: </span>
+                              {stats.paid.map(inv => `${inv.player?.first_name} ${inv.player?.last_name}`).join(', ')}
+                            </div>
+                          )}
+                          {stats.unpaid.length > 0 && (
+                            <div className="text-xs text-red-700">
+                              <span className="font-medium">Unpaid: </span>
+                              {stats.unpaid.map(inv => `${inv.player?.first_name} ${inv.player?.last_name}`).join(', ')}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -715,6 +834,25 @@ export default function TournamentDetail({
                             className="w-10 text-xs border border-gray-200 rounded px-1 py-0.5 text-center"
                           />
                         </div>
+
+                        {/* Lodging Paid Checkbox (only if lodging has cost) */}
+                        {(() => {
+                          const lodgingOpt = lodgingOptions.find(o => o.id === invitation.lodging_id)
+                          if (!lodgingOpt?.total_cost) return null
+                          return (
+                            <label className="flex items-center gap-1 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={invitation.lodging_paid || false}
+                                onChange={(e) => onUpdateLodging(invitation.id, { lodging_paid: e.target.checked })}
+                                className="w-3.5 h-3.5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                              />
+                              <span className={`text-xs ${invitation.lodging_paid ? 'text-green-600' : 'text-gray-400'}`}>
+                                $
+                              </span>
+                            </label>
+                          )
+                        })()}
                       </>
                     )}
                   </div>

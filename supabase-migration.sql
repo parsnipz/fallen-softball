@@ -89,6 +89,17 @@ CREATE POLICY "Anyone can view players" ON players
 --   FOR SELECT TO anon USING (bucket_id = 'documents' AND (storage.foldername(name))[1] = 'signatures');
 
 -- =============================================
+-- LODGING PAYMENT FEATURE
+-- =============================================
+
+-- Add payment fields to tournament_lodging
+ALTER TABLE tournament_lodging ADD COLUMN IF NOT EXISTS total_cost DECIMAL(10,2);
+ALTER TABLE tournament_lodging ADD COLUMN IF NOT EXISTS venmo_link TEXT;
+
+-- Add lodging_paid to tournament_invitations
+ALTER TABLE tournament_invitations ADD COLUMN IF NOT EXISTS lodging_paid BOOLEAN DEFAULT FALSE;
+
+-- =============================================
 -- CUSTOM WAIVER DOCUMENT FEATURE
 -- =============================================
 
