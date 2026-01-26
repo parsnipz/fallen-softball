@@ -39,8 +39,14 @@ function loadGoogleMaps() {
 export default function PlaceAutocomplete({ value, onChange, onPlaceSelect, placeholder, className }) {
   const inputRef = useRef(null)
   const autocompleteRef = useRef(null)
+  const onPlaceSelectRef = useRef(onPlaceSelect)
   const [isLoaded, setIsLoaded] = useState(false)
   const [error, setError] = useState(null)
+
+  // Keep the ref updated with the latest callback
+  useEffect(() => {
+    onPlaceSelectRef.current = onPlaceSelect
+  }, [onPlaceSelect])
 
   useEffect(() => {
     if (!GOOGLE_API_KEY) {
@@ -71,35 +77,45 @@ export default function PlaceAutocomplete({ value, onChange, onPlaceSelect, plac
 
       autocomplete.addListener('place_changed', () => {
         const place = autocomplete.getPlace()
-        if (place) {
-          // Extract city and state from address components
-          let city = ''
-          let state = ''
-          if (place.address_components) {
-            for (const component of place.address_components) {
-              if (component.types.includes('locality')) {
-                city = component.long_name
-              }
-              if (component.types.includes('administrative_area_level_1')) {
-                state = component.short_name
-              }
+        console.log('Place selected:', place)
+
+        // Check if we got a valid place with details
+        if (!place || !place.place_id) {
+          console.log('No valid place selected')
+          return
+        }
+
+        // Extract city and state from address components
+        let city = ''
+        let state = ''
+        if (place.address_components) {
+          for (const component of place.address_components) {
+            if (component.types.includes('locality')) {
+              city = component.long_name
+            }
+            if (component.types.includes('administrative_area_level_1')) {
+              state = component.short_name
             }
           }
+        }
 
-          // Build Google Maps URL
-          const mapsUrl = place.url ||
-            (place.place_id ? `https://www.google.com/maps/place/?q=place_id:${place.place_id}` : '')
+        // Build Google Maps URL
+        const mapsUrl = place.url ||
+          `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name || '')}&query_place_id=${place.place_id}`
 
-          // Call the onPlaceSelect callback with all the place details
-          if (onPlaceSelect) {
-            onPlaceSelect({
-              name: place.name || '',
-              address: place.formatted_address || '',
-              city,
-              state,
-              maps_url: mapsUrl,
-            })
-          }
+        const placeData = {
+          name: place.name || '',
+          address: place.formatted_address || '',
+          city,
+          state,
+          maps_url: mapsUrl,
+        }
+
+        console.log('Calling onPlaceSelect with:', placeData)
+
+        // Call the onPlaceSelect callback with all the place details
+        if (onPlaceSelectRef.current) {
+          onPlaceSelectRef.current(placeData)
         }
       })
 
@@ -114,7 +130,7 @@ export default function PlaceAutocomplete({ value, onChange, onPlaceSelect, plac
         window.google.maps.event.clearInstanceListeners(autocompleteRef.current)
       }
     }
-  }, [isLoaded, onPlaceSelect])
+  }, [isLoaded]) // Removed onPlaceSelect from deps, using ref instead
 
   // Handle manual input changes
   const handleInputChange = (e) => {
