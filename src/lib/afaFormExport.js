@@ -184,17 +184,17 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     color: rgb(0, 0, 0),
   })
 
-  // State (x=379)
+  // State (x=424)
   page.drawText(settings.managerState, {
-    x: 379,
+    x: 424,
     y: addressLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
   })
 
-  // Zip (x=478)
+  // Zip (x=490)
   page.drawText(settings.managerZip, {
-    x: 478,
+    x: 490,
     y: addressLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
@@ -211,7 +211,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
 
   // Column X positions for player table
   const playerNameX = 61
-  const birthDateX = 222
+  const birthDateX = 230
   const addressX = 284
   const signatureX = 630
 

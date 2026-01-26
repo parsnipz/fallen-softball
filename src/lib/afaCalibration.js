@@ -78,11 +78,11 @@ export async function createCalibrationPDF() {
     { name: 'Manager', x: 127, fromTop: 128 },
     // Address
     { name: 'City', x: 271, fromTop: 150 },
-    { name: 'State', x: 379, fromTop: 150 },
-    { name: 'Zip', x: 478, fromTop: 150 },
+    { name: 'State', x: 424, fromTop: 150 },
+    { name: 'Zip', x: 490, fromTop: 150 },
     // Player row 1
     { name: 'P1 Name', x: 61, fromTop: 235 },
-    { name: 'P1 DOB', x: 222, fromTop: 235 },
+    { name: 'P1 DOB', x: 230, fromTop: 235 },
     { name: 'P1 Addr', x: 284, fromTop: 235 },
     { name: 'P1 Sig', x: 630, fromTop: 235 },
     // Player row 2 (to show row spacing)
