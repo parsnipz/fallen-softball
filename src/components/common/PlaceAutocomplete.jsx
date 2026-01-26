@@ -54,8 +54,16 @@ export default function PlaceAutocomplete({ value, onChange, onPlaceSelect, plac
       return
     }
 
+    // Check if already loaded
+    if (window.google?.maps?.places) {
+      console.log('Google Maps already loaded')
+      setIsLoaded(true)
+      return
+    }
+
     loadGoogleMaps()
-      .then((google) => {
+      .then(() => {
+        console.log('Google Maps loaded')
         setIsLoaded(true)
       })
       .catch((err) => {
@@ -65,15 +73,18 @@ export default function PlaceAutocomplete({ value, onChange, onPlaceSelect, plac
   }, [])
 
   useEffect(() => {
+    console.log('PlaceAutocomplete effect - isLoaded:', isLoaded, 'inputRef:', !!inputRef.current)
     if (!isLoaded || !inputRef.current) return
 
     // Clean up previous autocomplete if it exists
     if (autocompleteRef.current && window.google?.maps?.event) {
+      console.log('Cleaning up previous autocomplete')
       window.google.maps.event.clearInstanceListeners(autocompleteRef.current)
       autocompleteRef.current = null
     }
 
     try {
+      console.log('Initializing autocomplete')
       // Use the Places Autocomplete service for establishments (parks, fields, etc.)
       const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
         types: ['establishment'],
@@ -126,6 +137,7 @@ export default function PlaceAutocomplete({ value, onChange, onPlaceSelect, plac
       })
 
       autocompleteRef.current = autocomplete
+      console.log('Autocomplete initialized successfully')
     } catch (err) {
       console.error('Autocomplete init error:', err)
       setError('Failed to initialize autocomplete')
