@@ -8,7 +8,7 @@ import InvitationManager from './InvitationManager'
 import StatusToggle from './StatusToggle'
 import MessageThreadCreator from '../messaging/MessageThreadCreator'
 import DocumentUpload from '../messaging/DocumentUpload'
-import PlaceAutocomplete from '../common/PlaceAutocomplete'
+import AddressAutocomplete from '../common/AddressAutocomplete'
 
 export default function TournamentDetail({
   tournament,
@@ -853,16 +853,14 @@ export default function TournamentDetail({
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <PlaceAutocomplete
+              <AddressAutocomplete
                 value={newLodging.address}
-                onChange={(val) => setNewLodging(prev => ({ ...prev, address: val }))}
-                onPlaceSelect={(place) => setNewLodging(prev => ({
+                onChange={(val) => setNewLodging(prev => ({
                   ...prev,
-                  name: prev.name || place.name,
-                  address: place.address,
-                  maps_url: place.maps_url
+                  address: val,
+                  maps_url: val ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(val)}` : ''
                 }))}
-                placeholder="Search for lodging..."
+                placeholder="Search address..."
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
               />
               <input
@@ -1378,16 +1376,14 @@ export default function TournamentDetail({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                <PlaceAutocomplete
+                <AddressAutocomplete
                   value={editingLodging.address}
-                  onChange={(val) => setEditingLodging({ ...editingLodging, address: val })}
-                  onPlaceSelect={(place) => setEditingLodging(prev => ({
+                  onChange={(val) => setEditingLodging(prev => ({
                     ...prev,
-                    name: prev.name || place.name,
-                    address: place.address,
-                    maps_url: place.maps_url
+                    address: val,
+                    maps_url: val ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(val)}` : prev.maps_url
                   }))}
-                  placeholder="Search for lodging..."
+                  placeholder="Search address..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -1398,7 +1394,7 @@ export default function TournamentDetail({
                   value={editingLodging.maps_url}
                   onChange={(e) => setEditingLodging({ ...editingLodging, maps_url: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-                  placeholder="Auto-filled from search"
+                  placeholder="Auto-filled from address"
                 />
               </div>
               <div className="grid grid-cols-3 gap-3">
