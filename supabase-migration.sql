@@ -18,6 +18,45 @@ ALTER TABLE tournament_invitations ADD COLUMN IF NOT EXISTS signature_token UUID
 ALTER TABLE tournament_invitations ADD COLUMN IF NOT EXISTS signature_url TEXT;
 ALTER TABLE tournament_invitations ADD COLUMN IF NOT EXISTS signed_at TIMESTAMP WITH TIME ZONE;
 
+-- =============================================
+-- LODGING FEATURE
+-- =============================================
+
+-- Create tournament_lodging table for lodging options
+CREATE TABLE IF NOT EXISTS tournament_lodging (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tournament_id UUID REFERENCES tournaments(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  url TEXT,
+  capacity INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Add lodging fields to tournament_invitations
+ALTER TABLE tournament_invitations ADD COLUMN IF NOT EXISTS lodging_status TEXT DEFAULT NULL;
+ALTER TABLE tournament_invitations ADD COLUMN IF NOT EXISTS lodging_id UUID REFERENCES tournament_lodging(id) ON DELETE SET NULL;
+ALTER TABLE tournament_invitations ADD COLUMN IF NOT EXISTS lodging_adults INTEGER DEFAULT 1;
+ALTER TABLE tournament_invitations ADD COLUMN IF NOT EXISTS lodging_kids INTEGER DEFAULT 0;
+
+-- RLS policies for tournament_lodging
+ALTER TABLE tournament_lodging ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Authenticated users can view lodging" ON tournament_lodging;
+CREATE POLICY "Authenticated users can view lodging" ON tournament_lodging
+  FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can insert lodging" ON tournament_lodging;
+CREATE POLICY "Authenticated users can insert lodging" ON tournament_lodging
+  FOR INSERT TO authenticated WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Authenticated users can update lodging" ON tournament_lodging;
+CREATE POLICY "Authenticated users can update lodging" ON tournament_lodging
+  FOR UPDATE TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can delete lodging" ON tournament_lodging;
+CREATE POLICY "Authenticated users can delete lodging" ON tournament_lodging
+  FOR DELETE TO authenticated USING (true);
+
 -- RLS policies for public signature access (allows players to sign without logging in)
 -- These policies are additive to existing authenticated-only policies
 

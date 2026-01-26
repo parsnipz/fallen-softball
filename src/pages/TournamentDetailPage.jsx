@@ -9,14 +9,19 @@ export default function TournamentDetailPage() {
     tournament,
     invitations,
     documents,
+    lodgingOptions,
     loading: tournamentLoading,
     error: tournamentError,
     invitePlayer,
     updateInvitationStatus,
     updateInvitationPaid,
+    updateInvitationLodging,
     removeInvitation,
     addDocument,
     deleteDocument,
+    addLodgingOption,
+    updateLodgingOption,
+    deleteLodgingOption,
   } = useTournamentDetail(id)
 
   const { players, loading: playersLoading } = usePlayers()
@@ -36,14 +41,19 @@ export default function TournamentDetailPage() {
       tournament={tournament}
       invitations={invitations}
       documents={documents}
+      lodgingOptions={lodgingOptions}
       loading={loading}
       players={players}
       onInvitePlayer={invitePlayer}
       onUpdateStatus={updateInvitationStatus}
       onUpdatePaid={updateInvitationPaid}
+      onUpdateLodging={updateInvitationLodging}
       onRemoveInvitation={removeInvitation}
       onAddDocument={addDocument}
       onDeleteDocument={deleteDocument}
+      onAddLodging={addLodgingOption}
+      onUpdateLodging={updateLodgingOption}
+      onDeleteLodging={deleteLodgingOption}
     />
   )
 }

@@ -11,20 +11,27 @@ export default function TournamentDetail({
   tournament,
   invitations,
   documents,
+  lodgingOptions = [],
   loading,
   players,
   onInvitePlayer,
   onUpdateStatus,
   onUpdatePaid,
+  onUpdateLodging,
   onRemoveInvitation,
   onAddDocument,
   onDeleteDocument,
+  onAddLodging,
+  onUpdateLodging: onUpdateLodgingOption,
+  onDeleteLodging,
 }) {
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [copied, setCopied] = useState(false)
   const [customDivisor, setCustomDivisor] = useState('')
   const [copiedSignatureLink, setCopiedSignatureLink] = useState(null)
   const [copiedAllLinks, setCopiedAllLinks] = useState(false)
+  const [showAddLodging, setShowAddLodging] = useState(false)
+  const [newLodging, setNewLodging] = useState({ name: '', url: '', capacity: '' })
 
   // Calculate status counts
   const statusCounts = useMemo(() => {
@@ -78,6 +85,17 @@ export default function TournamentDetail({
     const amountDue = paymentStatus.unpaid.length * costPerPlayer
     return { totalPaid, amountDue }
   }, [costPerPlayer, paymentStatus])
+
+  // Calculate lodging stats per option
+  const lodgingStats = useMemo(() => {
+    const stats = {}
+    lodgingOptions.forEach(opt => {
+      const lodgingInvitations = invitations.filter(inv => inv.lodging_id === opt.id && inv.lodging_status === 'in')
+      const totalPeople = lodgingInvitations.reduce((sum, inv) => sum + (inv.lodging_adults || 1) + (inv.lodging_kids || 0), 0)
+      stats[opt.id] = { count: lodgingInvitations.length, totalPeople }
+    })
+    return stats
+  }, [invitations, lodgingOptions])
 
   // Copy payment info to clipboard
   const handleCopyPaymentInfo = () => {
@@ -195,8 +213,41 @@ export default function TournamentDetail({
     }
   }
 
+  // Lodging handlers
+  const handleAddLodging = async () => {
+    if (!newLodging.name.trim()) return
+    await onAddLodging({
+      name: newLodging.name.trim(),
+      url: newLodging.url.trim() || null,
+      capacity: newLodging.capacity ? parseInt(newLodging.capacity) : 0
+    })
+    setNewLodging({ name: '', url: '', capacity: '' })
+    setShowAddLodging(false)
+  }
+
+  const handleLodgingStatusChange = (invitation, newStatus) => {
+    if (newStatus === 'in') {
+      // Default to first lodging option if available
+      const defaultLodgingId = lodgingOptions.length > 0 ? lodgingOptions[0].id : null
+      onUpdateLodging(invitation.id, {
+        lodging_status: 'in',
+        lodging_id: defaultLodgingId,
+        lodging_adults: 1,
+        lodging_kids: 0
+      })
+    } else {
+      onUpdateLodging(invitation.id, {
+        lodging_status: newStatus === 'out' ? 'out' : null,
+        lodging_id: null,
+        lodging_adults: 1,
+        lodging_kids: 0
+      })
+    }
+  }
+
   // Count unsigned "in" players
   const unsignedCount = invitations.filter(inv => inv.status === 'in' && !inv.signature_url).length
+  const hasLodgingOptions = lodgingOptions.length > 0
 
   if (loading) {
     return (
@@ -406,6 +457,95 @@ export default function TournamentDetail({
         </div>
       )}
 
+      {/* Lodging */}
+      <div className="bg-white shadow rounded-lg p-4 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Lodging</h2>
+          <button
+            onClick={() => setShowAddLodging(!showAddLodging)}
+            className="text-sm text-blue-600 hover:text-blue-800"
+          >
+            {showAddLodging ? 'Cancel' : '+ Add Option'}
+          </button>
+        </div>
+
+        {showAddLodging && (
+          <div className="bg-gray-50 rounded-lg p-3 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+              <input
+                type="text"
+                placeholder="Name (e.g., Airbnb #1)"
+                value={newLodging.name}
+                onChange={(e) => setNewLodging(prev => ({ ...prev, name: e.target.value }))}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              />
+              <input
+                type="url"
+                placeholder="URL (optional)"
+                value={newLodging.url}
+                onChange={(e) => setNewLodging(prev => ({ ...prev, url: e.target.value }))}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              />
+              <input
+                type="number"
+                placeholder="Capacity"
+                value={newLodging.capacity}
+                onChange={(e) => setNewLodging(prev => ({ ...prev, capacity: e.target.value }))}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                min="0"
+              />
+              <button
+                onClick={handleAddLodging}
+                disabled={!newLodging.name.trim()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        )}
+
+        {lodgingOptions.length === 0 ? (
+          <p className="text-sm text-gray-500">No lodging options added yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {lodgingOptions.map(option => {
+              const stats = lodgingStats[option.id] || { count: 0, totalPeople: 0 }
+              return (
+                <div key={option.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-gray-900">{option.name}</span>
+                    {option.url ? (
+                      <a
+                        href={option.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:text-blue-800"
+                      >
+                        View Link
+                      </a>
+                    ) : (
+                      <span className="text-xs text-gray-400">No link</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm text-gray-600">
+                      {stats.totalPeople} / {option.capacity || '∞'} people
+                    </span>
+                    <button
+                      onClick={() => onDeleteLodging(option.id)}
+                      className="text-xs text-red-600 hover:text-red-800"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Messaging */}
       <div className="bg-white shadow rounded-lg p-4 mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Messaging</h2>
@@ -423,7 +563,7 @@ export default function TournamentDetail({
         />
       </div>
 
-      {/* Invited Players */}
+      {/* Invited Players - Compact View */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="p-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -448,68 +588,149 @@ export default function TournamentDetail({
             No players invited yet. Click "Invite Players" to get started.
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-100">
             {sortedInvitations.map((invitation) => (
               <div
                 key={invitation.id}
-                className="p-4 flex items-center justify-between hover:bg-gray-50"
+                className="px-3 py-2 flex items-center gap-2 hover:bg-gray-50 text-sm"
               >
-                <div className="flex items-center gap-4">
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded capitalize ${getStatusColor(invitation.status)}`}
-                  >
-                    {invitation.status}
-                  </span>
-                  <div>
-                    <div className="font-medium text-gray-900 flex items-center gap-2">
-                      {invitation.player?.first_name} {invitation.player?.last_name}
-                      {invitation.status === 'in' && (
-                        invitation.signature_url ? (
-                          <span className="text-xs text-green-600 font-normal">Signed</span>
-                        ) : (
-                          <button
-                            onClick={() => handleCopySignatureLink(invitation)}
-                            className={`text-xs px-2 py-0.5 rounded ${
-                              copiedSignatureLink === invitation.id
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                            }`}
-                          >
-                            {copiedSignatureLink === invitation.id ? 'Copied!' : 'Copy Sign Link'}
-                          </button>
-                        )
-                      )}
+                {/* Status Badge */}
+                <span
+                  className={`px-1.5 py-0.5 text-xs font-medium rounded capitalize ${getStatusColor(invitation.status)}`}
+                >
+                  {invitation.status}
+                </span>
+
+                {/* Player Name */}
+                <span className="font-medium text-gray-900 min-w-[120px]">
+                  {invitation.player?.first_name} {invitation.player?.last_name}
+                </span>
+
+                {/* Signature Status (only for "in" players) */}
+                {invitation.status === 'in' && (
+                  invitation.signature_url ? (
+                    <span className="text-xs text-green-600">✓ Signed</span>
+                  ) : (
+                    <button
+                      onClick={() => handleCopySignatureLink(invitation)}
+                      className={`text-xs px-1.5 py-0.5 rounded ${
+                        copiedSignatureLink === invitation.id
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                      }`}
+                    >
+                      {copiedSignatureLink === invitation.id ? 'Copied!' : 'Sign'}
+                    </button>
+                  )
+                )}
+
+                {/* Paid Checkbox (only for "in" players with cost) */}
+                {invitation.status === 'in' && tournament.total_cost && (
+                  <label className="flex items-center gap-1 cursor-pointer ml-2">
+                    <input
+                      type="checkbox"
+                      checked={invitation.paid || false}
+                      onChange={(e) => onUpdatePaid(invitation.id, e.target.checked)}
+                      className="w-3.5 h-3.5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                    />
+                    <span className={`text-xs ${invitation.paid ? 'text-green-600' : 'text-gray-400'}`}>
+                      Paid
+                    </span>
+                  </label>
+                )}
+
+                {/* Spacer */}
+                <div className="flex-1" />
+
+                {/* Lodging (only for "in" players, far right) */}
+                {invitation.status === 'in' && (
+                  <div className="flex items-center gap-2 mr-2">
+                    {/* Lodging In/Out Toggle */}
+                    <div className="flex items-center border border-gray-200 rounded overflow-hidden">
+                      <button
+                        onClick={() => handleLodgingStatusChange(invitation, 'in')}
+                        disabled={!hasLodgingOptions}
+                        className={`px-2 py-0.5 text-xs ${
+                          invitation.lodging_status === 'in'
+                            ? 'bg-green-500 text-white'
+                            : hasLodgingOptions
+                              ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              : 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                        }`}
+                      >
+                        🏠 In
+                      </button>
+                      <button
+                        onClick={() => handleLodgingStatusChange(invitation, 'out')}
+                        className={`px-2 py-0.5 text-xs ${
+                          invitation.lodging_status === 'out'
+                            ? 'bg-red-500 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        Out
+                      </button>
                     </div>
-                    {invitation.player?.phone && (
-                      <div className="text-sm text-gray-500">{invitation.player.phone}</div>
+
+                    {/* Lodging Details (only show when lodging_status is 'in') */}
+                    {invitation.lodging_status === 'in' && (
+                      <>
+                        {/* Lodging Option Selector */}
+                        {lodgingOptions.length > 1 && (
+                          <select
+                            value={invitation.lodging_id || ''}
+                            onChange={(e) => onUpdateLodging(invitation.id, { lodging_id: e.target.value || null })}
+                            className="text-xs border border-gray-200 rounded px-1 py-0.5"
+                          >
+                            {lodgingOptions.map(opt => (
+                              <option key={opt.id} value={opt.id}>{opt.name}</option>
+                            ))}
+                          </select>
+                        )}
+
+                        {/* Adults Count */}
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-gray-500">A:</span>
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={invitation.lodging_adults || 1}
+                            onChange={(e) => onUpdateLodging(invitation.id, { lodging_adults: parseInt(e.target.value) || 1 })}
+                            className="w-10 text-xs border border-gray-200 rounded px-1 py-0.5 text-center"
+                          />
+                        </div>
+
+                        {/* Kids Count */}
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-gray-500">K:</span>
+                          <input
+                            type="number"
+                            min="0"
+                            max="10"
+                            value={invitation.lodging_kids || 0}
+                            onChange={(e) => onUpdateLodging(invitation.id, { lodging_kids: parseInt(e.target.value) || 0 })}
+                            className="w-10 text-xs border border-gray-200 rounded px-1 py-0.5 text-center"
+                          />
+                        </div>
+                      </>
                     )}
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  {invitation.status === 'in' && tournament.total_cost && (
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={invitation.paid || false}
-                        onChange={(e) => onUpdatePaid(invitation.id, e.target.checked)}
-                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                      />
-                      <span className={`text-sm ${invitation.paid ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
-                        Paid
-                      </span>
-                    </label>
-                  )}
-                  <StatusToggle
-                    status={invitation.status}
-                    onChange={(status) => onUpdateStatus(invitation.id, status)}
-                  />
-                  <button
-                    onClick={() => onRemoveInvitation(invitation.id)}
-                    className="text-sm text-red-600 hover:text-red-800"
-                  >
-                    Remove
-                  </button>
-                </div>
+                )}
+
+                {/* Status Toggle */}
+                <StatusToggle
+                  status={invitation.status}
+                  onChange={(status) => onUpdateStatus(invitation.id, status)}
+                />
+
+                {/* Remove Button */}
+                <button
+                  onClick={() => onRemoveInvitation(invitation.id)}
+                  className="text-xs text-red-500 hover:text-red-700"
+                >
+                  ✕
+                </button>
               </div>
             ))}
           </div>

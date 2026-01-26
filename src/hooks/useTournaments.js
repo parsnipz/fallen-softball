@@ -100,6 +100,7 @@ export function useTournamentDetail(tournamentId) {
   const [tournament, setTournament] = useState(null)
   const [invitations, setInvitations] = useState([])
   const [documents, setDocuments] = useState([])
+  const [lodgingOptions, setLodgingOptions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -139,9 +140,19 @@ export function useTournamentDetail(tournamentId) {
 
       if (documentsError) throw documentsError
 
+      // Fetch lodging options
+      const { data: lodgingData, error: lodgingError } = await supabase
+        .from('tournament_lodging')
+        .select('*')
+        .eq('tournament_id', tournamentId)
+        .order('created_at', { ascending: true })
+
+      if (lodgingError) throw lodgingError
+
       setTournament(tournamentData)
       setInvitations(invitationsData || [])
       setDocuments(documentsData || [])
+      setLodgingOptions(lodgingData || [])
     } catch (err) {
       setError(err.message)
       console.error('Error fetching tournament detail:', err)
@@ -272,18 +283,105 @@ export function useTournamentDetail(tournamentId) {
     }
   }
 
+  // Lodging operations
+  const addLodgingOption = async (lodgingData) => {
+    try {
+      const { data, error } = await supabase
+        .from('tournament_lodging')
+        .insert([{
+          ...lodgingData,
+          tournament_id: tournamentId
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      setLodgingOptions(prev => [...prev, data])
+      return { data, error: null }
+    } catch (err) {
+      console.error('Error adding lodging:', err)
+      return { data: null, error: err.message }
+    }
+  }
+
+  const updateLodgingOption = async (lodgingId, lodgingData) => {
+    try {
+      const { data, error } = await supabase
+        .from('tournament_lodging')
+        .update(lodgingData)
+        .eq('id', lodgingId)
+        .select()
+        .single()
+
+      if (error) throw error
+      setLodgingOptions(prev => prev.map(l => l.id === lodgingId ? data : l))
+      return { data, error: null }
+    } catch (err) {
+      console.error('Error updating lodging:', err)
+      return { data: null, error: err.message }
+    }
+  }
+
+  const deleteLodgingOption = async (lodgingId) => {
+    try {
+      const { error } = await supabase
+        .from('tournament_lodging')
+        .delete()
+        .eq('id', lodgingId)
+
+      if (error) throw error
+      setLodgingOptions(prev => prev.filter(l => l.id !== lodgingId))
+      // Clear lodging_id from any invitations that had this lodging
+      setInvitations(prev => prev.map(inv =>
+        inv.lodging_id === lodgingId
+          ? { ...inv, lodging_id: null, lodging_status: null }
+          : inv
+      ))
+      return { error: null }
+    } catch (err) {
+      console.error('Error deleting lodging:', err)
+      return { error: err.message }
+    }
+  }
+
+  const updateInvitationLodging = async (invitationId, lodgingData) => {
+    try {
+      const { data, error } = await supabase
+        .from('tournament_invitations')
+        .update(lodgingData)
+        .eq('id', invitationId)
+        .select(`
+          *,
+          player:players(*)
+        `)
+        .single()
+
+      if (error) throw error
+      setInvitations(prev => prev.map(inv => inv.id === invitationId ? data : inv))
+      return { data, error: null }
+    } catch (err) {
+      console.error('Error updating invitation lodging:', err)
+      return { data: null, error: err.message }
+    }
+  }
+
   return {
     tournament,
     invitations,
     documents,
+    lodgingOptions,
     loading,
     error,
     refetch: fetchTournament,
     invitePlayer,
     updateInvitationStatus,
     updateInvitationPaid,
+    updateInvitationLodging,
     removeInvitation,
     addDocument,
     deleteDocument,
+    addLodgingOption,
+    updateLodgingOption,
+    deleteLodgingOption,
   }
 }
