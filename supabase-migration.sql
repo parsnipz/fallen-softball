@@ -187,3 +187,13 @@ CREATE POLICY "Authenticated users can delete tournament_parks" ON tournament_pa
 DROP POLICY IF EXISTS "Anyone can view tournament_parks" ON tournament_parks;
 CREATE POLICY "Anyone can view tournament_parks" ON tournament_parks
   FOR SELECT TO anon USING (true);
+
+-- =============================================
+-- ADDITIONAL FEES FEATURE
+-- =============================================
+
+-- Add additional_fees to tournaments (added to total before dividing by players)
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS additional_fees DECIMAL(10,2);
+
+-- Add additional_fees to tournament_lodging (added to total before dividing by people)
+ALTER TABLE tournament_lodging ADD COLUMN IF NOT EXISTS additional_fees DECIMAL(10,2);

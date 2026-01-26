@@ -41,6 +41,7 @@ export default function TournamentDetail({
     date: '',
     location: '',
     total_cost: '',
+    additional_fees: '',
     venmo_link: '',
   })
   const [copied, setCopied] = useState(false)
@@ -48,7 +49,7 @@ export default function TournamentDetail({
   const [copiedSignatureLink, setCopiedSignatureLink] = useState(null)
   const [copiedAllLinks, setCopiedAllLinks] = useState(false)
   const [showAddLodging, setShowAddLodging] = useState(false)
-  const [newLodging, setNewLodging] = useState({ name: '', url: '', capacity: '', total_cost: '', venmo_link: '' })
+  const [newLodging, setNewLodging] = useState({ name: '', url: '', capacity: '', total_cost: '', additional_fees: '', venmo_link: '' })
   const [copiedLodgingPayment, setCopiedLodgingPayment] = useState(null)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [copiedShareLink, setCopiedShareLink] = useState(false)
@@ -106,11 +107,13 @@ export default function TournamentDetail({
   }, [invitations])
 
   // Calculate cost per player (rounded up to nearest dollar)
+  // Includes additional_fees in the total before dividing
   const divisor = customDivisor ? parseInt(customDivisor) : statusCounts.in
   const costPerPlayer = useMemo(() => {
     if (!tournament?.total_cost || divisor === 0) return null
-    return Math.ceil(parseFloat(tournament.total_cost) / divisor)
-  }, [tournament?.total_cost, divisor])
+    const total = parseFloat(tournament.total_cost) + parseFloat(tournament.additional_fees || 0)
+    return Math.ceil(total / divisor)
+  }, [tournament?.total_cost, tournament?.additional_fees, divisor])
 
   // Calculate total paid and amount due
   const paymentTotals = useMemo(() => {
@@ -121,6 +124,7 @@ export default function TournamentDetail({
   }, [costPerPlayer, paymentStatus])
 
   // Calculate lodging stats per option
+  // Includes additional_fees in the total before dividing
   const lodgingStats = useMemo(() => {
     const stats = {}
     lodgingOptions.forEach(opt => {
@@ -128,7 +132,8 @@ export default function TournamentDetail({
       const totalPeople = lodgingInvitations.reduce((sum, inv) => sum + (inv.lodging_adults || 1) + (inv.lodging_kids || 0), 0)
       const paidInvitations = lodgingInvitations.filter(inv => inv.lodging_paid)
       const unpaidInvitations = lodgingInvitations.filter(inv => !inv.lodging_paid)
-      const costPerPerson = opt.total_cost && totalPeople > 0 ? Math.ceil(parseFloat(opt.total_cost) / totalPeople) : null
+      const totalWithFees = (parseFloat(opt.total_cost) || 0) + (parseFloat(opt.additional_fees) || 0)
+      const costPerPerson = totalWithFees && totalPeople > 0 ? Math.ceil(totalWithFees / totalPeople) : null
       stats[opt.id] = {
         count: lodgingInvitations.length,
         totalPeople,
@@ -261,6 +266,7 @@ export default function TournamentDetail({
       date: tournament.date || '',
       location: tournament.location || '',
       total_cost: tournament.total_cost || '',
+      additional_fees: tournament.additional_fees || '',
       venmo_link: tournament.venmo_link || '',
     })
     setShowEditModal(true)
@@ -273,6 +279,7 @@ export default function TournamentDetail({
       date: editFormData.date,
       location: editFormData.location,
       total_cost: editFormData.total_cost || null,
+      additional_fees: editFormData.additional_fees || null,
       venmo_link: editFormData.venmo_link || null,
     })
     setShowEditModal(false)
@@ -350,9 +357,10 @@ export default function TournamentDetail({
       url: newLodging.url.trim() || null,
       capacity: newLodging.capacity ? parseInt(newLodging.capacity) : 0,
       total_cost: newLodging.total_cost ? parseFloat(newLodging.total_cost) : null,
+      additional_fees: newLodging.additional_fees ? parseFloat(newLodging.additional_fees) : null,
       venmo_link: newLodging.venmo_link.trim() || null
     })
-    setNewLodging({ name: '', url: '', capacity: '', total_cost: '', venmo_link: '' })
+    setNewLodging({ name: '', url: '', capacity: '', total_cost: '', additional_fees: '', venmo_link: '' })
     setShowAddLodging(false)
   }
 
@@ -621,7 +629,14 @@ export default function TournamentDetail({
             {tournament.total_cost && (
               <div>
                 <div className="text-sm text-gray-500">Total Cost</div>
-                <div className="text-xl font-bold text-gray-900">${parseFloat(tournament.total_cost).toFixed(2)}</div>
+                <div className="text-xl font-bold text-gray-900">
+                  ${parseFloat(tournament.total_cost).toFixed(2)}
+                  {tournament.additional_fees && (
+                    <span className="text-sm font-normal text-gray-500">
+                      {' '}+ ${parseFloat(tournament.additional_fees).toFixed(2)} fees
+                    </span>
+                  )}
+                </div>
               </div>
             )}
             {tournament.total_cost && (
@@ -786,12 +801,21 @@ export default function TournamentDetail({
                 min="0"
               />
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <input
                 type="number"
                 placeholder="Total Cost ($)"
                 value={newLodging.total_cost}
                 onChange={(e) => setNewLodging(prev => ({ ...prev, total_cost: e.target.value }))}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                min="0"
+                step="0.01"
+              />
+              <input
+                type="number"
+                placeholder="Add'l Fees ($)"
+                value={newLodging.additional_fees}
+                onChange={(e) => setNewLodging(prev => ({ ...prev, additional_fees: e.target.value }))}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
                 min="0"
                 step="0.01"
@@ -853,12 +877,19 @@ export default function TournamentDetail({
                   </div>
 
                   {/* Cost info */}
-                  {option.total_cost && (
+                  {(option.total_cost || option.additional_fees) && (
                     <div className="border-t border-gray-200 pt-2 mt-2">
                       <div className="flex flex-wrap items-center gap-4 text-sm">
                         <div>
                           <span className="text-gray-500">Total: </span>
-                          <span className="font-medium">${parseFloat(option.total_cost).toFixed(2)}</span>
+                          <span className="font-medium">
+                            ${parseFloat(option.total_cost || 0).toFixed(2)}
+                            {option.additional_fees && (
+                              <span className="text-gray-500 font-normal">
+                                {' '}+ ${parseFloat(option.additional_fees).toFixed(2)} fees
+                              </span>
+                            )}
+                          </span>
                         </div>
                         {stats.costPerPerson && (
                           <div>
@@ -1269,7 +1300,7 @@ export default function TournamentDetail({
                   placeholder="City, State"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Total Cost ($)
@@ -1278,6 +1309,20 @@ export default function TournamentDetail({
                     type="number"
                     value={editFormData.total_cost}
                     onChange={(e) => setEditFormData({ ...editFormData, total_cost: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Add'l Fees ($)
+                  </label>
+                  <input
+                    type="number"
+                    value={editFormData.additional_fees}
+                    onChange={(e) => setEditFormData({ ...editFormData, additional_fees: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="0.00"
                     min="0"

@@ -85,7 +85,7 @@ export default function PlayerTournamentView() {
         // Fetch lodging options
         const { data: lodgingData, error: lodgingError } = await supabase
           .from('tournament_lodging')
-          .select('id, name, url, capacity, total_cost, venmo_link')
+          .select('id, name, url, capacity, total_cost, additional_fees, venmo_link')
           .eq('tournament_id', tournamentId)
           .order('created_at', { ascending: true })
 
@@ -139,18 +139,22 @@ export default function PlayerTournamentView() {
   }, [invitations])
 
   // Calculate cost per player
+  // Calculate cost per player (includes additional_fees)
   const costPerPlayer = useMemo(() => {
     if (!tournament?.total_cost || statusCounts.in === 0) return null
-    return Math.ceil(parseFloat(tournament.total_cost) / statusCounts.in)
-  }, [tournament?.total_cost, statusCounts.in])
+    const total = parseFloat(tournament.total_cost) + parseFloat(tournament.additional_fees || 0)
+    return Math.ceil(total / statusCounts.in)
+  }, [tournament?.total_cost, tournament?.additional_fees, statusCounts.in])
 
   // Calculate lodging stats
+  // Calculate lodging stats (includes additional_fees)
   const lodgingStats = useMemo(() => {
     const stats = {}
     lodgingOptions.forEach(opt => {
       const lodgingInvitations = invitations.filter(inv => inv.lodging_id === opt.id && inv.lodging_status === 'in')
       const totalPeople = lodgingInvitations.reduce((sum, inv) => sum + (inv.lodging_adults || 1) + (inv.lodging_kids || 0), 0)
-      const costPerPerson = opt.total_cost && totalPeople > 0 ? Math.ceil(parseFloat(opt.total_cost) / totalPeople) : null
+      const totalWithFees = (parseFloat(opt.total_cost) || 0) + (parseFloat(opt.additional_fees) || 0)
+      const costPerPerson = totalWithFees && totalPeople > 0 ? Math.ceil(totalWithFees / totalPeople) : null
       stats[opt.id] = {
         count: lodgingInvitations.length,
         totalPeople,
