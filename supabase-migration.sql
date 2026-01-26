@@ -197,3 +197,6 @@ ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS additional_fees DECIMAL(10,2);
 
 -- Add additional_fees to tournament_lodging (added to total before dividing by people)
 ALTER TABLE tournament_lodging ADD COLUMN IF NOT EXISTS additional_fees DECIMAL(10,2);
+
+-- Add cost_divisor to tournaments (custom number to divide cost by, defaults to number of "in" players)
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS cost_divisor INTEGER;

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { formatDate, getStatusColor, createTournamentSlug } from '../../lib/utils'
 import { exportRosterPDF } from '../../lib/pdfExport'
@@ -46,6 +46,7 @@ export default function TournamentDetail({
   })
   const [copied, setCopied] = useState(false)
   const [customDivisor, setCustomDivisor] = useState('')
+  const [divisorInitialized, setDivisorInitialized] = useState(false)
   const [copiedSignatureLink, setCopiedSignatureLink] = useState(null)
   const [copiedAllLinks, setCopiedAllLinks] = useState(false)
   const [showAddLodging, setShowAddLodging] = useState(false)
@@ -66,6 +67,22 @@ export default function TournamentDetail({
 
   const togglePanel = (panel) => {
     setExpandedPanels(prev => ({ ...prev, [panel]: !prev[panel] }))
+  }
+
+  // Initialize customDivisor from saved tournament.cost_divisor
+  useEffect(() => {
+    if (tournament?.cost_divisor && !divisorInitialized) {
+      setCustomDivisor(tournament.cost_divisor.toString())
+      setDivisorInitialized(true)
+    }
+  }, [tournament?.cost_divisor, divisorInitialized])
+
+  // Save divisor when it changes (on blur)
+  const handleDivisorBlur = () => {
+    const value = customDivisor ? parseInt(customDivisor) : null
+    if (value !== tournament?.cost_divisor) {
+      onUpdateTournament({ cost_divisor: value })
+    }
   }
 
   // Calculate status counts
@@ -647,12 +664,13 @@ export default function TournamentDetail({
                     type="number"
                     value={customDivisor}
                     onChange={(e) => setCustomDivisor(e.target.value)}
+                    onBlur={handleDivisorBlur}
                     placeholder={statusCounts.in.toString()}
                     min="1"
                     className="w-16 px-2 py-1 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                   <span className="text-xs text-gray-500">
-                    {customDivisor ? '(custom)' : `(${statusCounts.in} in)`}
+                    {customDivisor ? '(saved)' : `(${statusCounts.in} in)`}
                   </span>
                 </div>
               </div>
