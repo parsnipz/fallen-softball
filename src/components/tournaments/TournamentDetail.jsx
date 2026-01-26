@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { formatDate, getStatusColor, createTournamentSlug } from '../../lib/utils'
 import { exportRosterPDF } from '../../lib/pdfExport'
@@ -8,6 +8,7 @@ import InvitationManager from './InvitationManager'
 import StatusToggle from './StatusToggle'
 import MessageThreadCreator from '../messaging/MessageThreadCreator'
 import DocumentUpload from '../messaging/DocumentUpload'
+import PlaceAutocomplete from '../common/PlaceAutocomplete'
 
 export default function TournamentDetail({
   tournament,
@@ -852,19 +853,24 @@ export default function TournamentDetail({
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <input
-                type="text"
-                placeholder="Address"
+              <PlaceAutocomplete
                 value={newLodging.address}
-                onChange={(e) => setNewLodging(prev => ({ ...prev, address: e.target.value }))}
+                onChange={(val) => setNewLodging(prev => ({ ...prev, address: val }))}
+                onPlaceSelect={(place) => setNewLodging(prev => ({
+                  ...prev,
+                  name: prev.name || place.name,
+                  address: place.address,
+                  maps_url: place.maps_url
+                }))}
+                placeholder="Search for lodging..."
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
               />
               <input
                 type="url"
-                placeholder="Google Maps URL"
+                placeholder="Google Maps URL (auto-filled)"
                 value={newLodging.maps_url}
                 onChange={(e) => setNewLodging(prev => ({ ...prev, maps_url: e.target.value }))}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50"
               />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -1372,10 +1378,16 @@ export default function TournamentDetail({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                <input
-                  type="text"
+                <PlaceAutocomplete
                   value={editingLodging.address}
-                  onChange={(e) => setEditingLodging({ ...editingLodging, address: e.target.value })}
+                  onChange={(val) => setEditingLodging({ ...editingLodging, address: val })}
+                  onPlaceSelect={(place) => setEditingLodging(prev => ({
+                    ...prev,
+                    name: prev.name || place.name,
+                    address: place.address,
+                    maps_url: place.maps_url
+                  }))}
+                  placeholder="Search for lodging..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -1385,7 +1397,8 @@ export default function TournamentDetail({
                   type="url"
                   value={editingLodging.maps_url}
                   onChange={(e) => setEditingLodging({ ...editingLodging, maps_url: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+                  placeholder="Auto-filled from search"
                 />
               </div>
               <div className="grid grid-cols-3 gap-3">
