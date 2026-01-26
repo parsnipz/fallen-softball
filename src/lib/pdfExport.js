@@ -127,19 +127,27 @@ export async function exportRosterPDF(tournament, invitations) {
       if (data.section === 'body') {
         const player = allPlayers[data.row.index]
 
-        // Add signature images - fill the cell
+        // Add signature images - maintain aspect ratio
         if (data.column.index === 4 && player.signatureUrl && signatureImages[player.signatureUrl]) {
           const imgData = signatureImages[player.signatureUrl]
           const padding = 1
-          const imgHeight = data.cell.height - (padding * 2)
-          const imgWidth = data.cell.width - (padding * 2)
+          const maxHeight = data.cell.height - (padding * 2)
+          const maxWidth = data.cell.width - (padding * 2)
+
+          // Signature images are typically wider than tall (roughly 3:1 ratio)
+          // Scale to fit height while maintaining aspect ratio
+          const imgHeight = maxHeight
+          const imgWidth = imgHeight * 3  // Maintain approximate signature aspect ratio
+
+          // Center horizontally if image is narrower than cell
+          const xOffset = imgWidth < maxWidth ? (maxWidth - imgWidth) / 2 : 0
 
           doc.addImage(
             imgData,
             'PNG',
-            data.cell.x + padding,
+            data.cell.x + padding + xOffset,
             data.cell.y + padding,
-            imgWidth,
+            Math.min(imgWidth, maxWidth),
             imgHeight
           )
         }
