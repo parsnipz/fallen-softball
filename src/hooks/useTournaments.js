@@ -111,10 +111,13 @@ export function useTournamentDetail(tournamentId) {
       setLoading(true)
       setError(null)
 
-      // Fetch tournament
+      // Fetch tournament with park info
       const { data: tournamentData, error: tournamentError } = await supabase
         .from('tournaments')
-        .select('*')
+        .select(`
+          *,
+          park:parks(*)
+        `)
         .eq('id', tournamentId)
         .single()
 

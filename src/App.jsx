@@ -6,6 +6,7 @@ import PlayersPage from './pages/PlayersPage'
 import TournamentsPage from './pages/TournamentsPage'
 import TournamentDetailPage from './pages/TournamentDetailPage'
 import SignaturePage from './pages/SignaturePage'
+import ParksPage from './pages/ParksPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -56,6 +57,7 @@ function AppRoutes() {
         <Route path="players" element={<PlayersPage />} />
         <Route path="tournaments" element={<TournamentsPage />} />
         <Route path="tournaments/:id" element={<TournamentDetailPage />} />
+        <Route path="parks" element={<ParksPage />} />
       </Route>
     </Routes>
   )

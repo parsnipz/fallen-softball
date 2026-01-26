@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { formatDate } from '../../lib/utils'
 import TournamentForm from './TournamentForm'
 
-export default function TournamentList({ tournaments, loading, onAdd, onArchive, onDelete }) {
+export default function TournamentList({ tournaments, loading, parks = [], onAdd, onArchive, onDelete }) {
   const [showForm, setShowForm] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
@@ -141,6 +141,7 @@ export default function TournamentList({ tournaments, loading, onAdd, onArchive,
       {showForm && (
         <TournamentForm
           existingLocations={existingLocations}
+          parks={parks}
           onSubmit={handleFormSubmit}
           onClose={() => setShowForm(false)}
         />

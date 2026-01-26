@@ -8,6 +8,7 @@ export default function Header() {
   const navigation = [
     { name: 'Players', href: '/players' },
     { name: 'Tournaments', href: '/tournaments' },
+    { name: 'Parks', href: '/parks' },
   ]
 
   const isActive = (href) => location.pathname.startsWith(href)

@@ -360,6 +360,29 @@ export default function TournamentDetail({
               {formatDate(tournament.date)}
               {tournament.location && ` • ${tournament.location}`}
             </p>
+            {tournament.park && (
+              <p className="text-gray-500">
+                {tournament.park.maps_url ? (
+                  <a
+                    href={tournament.park.maps_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {tournament.park.name}
+                  </a>
+                ) : (
+                  <span>{tournament.park.name}</span>
+                )}
+                {tournament.park.city && tournament.park.state && (
+                  <span className="text-gray-400"> ({tournament.park.city}, {tournament.park.state})</span>
+                )}
+              </p>
+            )}
           </div>
           <div className="flex gap-2">
             <button

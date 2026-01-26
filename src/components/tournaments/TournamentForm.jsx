@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react'
 
-export default function TournamentForm({ tournament, existingLocations = [], onSubmit, onClose }) {
+export default function TournamentForm({ tournament, existingLocations = [], parks = [], onSubmit, onClose }) {
   const [formData, setFormData] = useState({
     name: tournament?.name || '',
     type: tournament?.type || 'coed',
     location: tournament?.location || '',
+    park_id: tournament?.park_id || '',
     date: tournament?.date || '',
     total_cost: tournament?.total_cost || '',
     venmo_link: tournament?.venmo_link || '',
@@ -49,6 +50,7 @@ export default function TournamentForm({ tournament, existingLocations = [], onS
         name: formData.name.trim(),
         type: formData.type,
         location: formData.location.trim() || null,
+        park_id: formData.park_id || null,
         date: formData.date,
         total_cost: formData.total_cost ? parseFloat(formData.total_cost) : null,
         venmo_link: formData.venmo_link.trim() || null,
@@ -165,6 +167,28 @@ export default function TournamentForm({ tournament, existingLocations = [], onS
               )}
               <p className="mt-1 text-xs text-gray-500">
                 Type to search existing locations or enter a new one
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Park
+              </label>
+              <select
+                name="park_id"
+                value={formData.park_id}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">-- Select a park --</option>
+                {parks.map((park) => (
+                  <option key={park.id} value={park.id}>
+                    {park.name} {park.city && `(${park.city})`}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Select a park for Google Maps directions
               </p>
             </div>
 

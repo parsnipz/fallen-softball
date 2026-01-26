@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useTournaments } from '../hooks/useTournaments'
+import { useParks } from '../hooks/useParks'
 import TournamentList from '../components/tournaments/TournamentList'
 import TournamentCalendar from '../components/tournaments/TournamentCalendar'
 
 export default function TournamentsPage() {
   const { tournaments, loading, error, addTournament, archiveTournament, deleteTournament } = useTournaments()
+  const { parks } = useParks()
   const [view, setView] = useState('list') // 'list' or 'calendar'
 
   if (error) {
@@ -47,6 +49,7 @@ export default function TournamentsPage() {
         <TournamentList
           tournaments={tournaments}
           loading={loading}
+          parks={parks}
           onAdd={addTournament}
           onArchive={archiveTournament}
           onDelete={deleteTournament}

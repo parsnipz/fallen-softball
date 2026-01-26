@@ -117,3 +117,45 @@ CREATE POLICY "Anyone can view documents" ON documents
 
 -- Add image_url to tournaments
 ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS image_url TEXT;
+
+-- =============================================
+-- PARKS FEATURE
+-- =============================================
+
+-- Create parks table
+CREATE TABLE IF NOT EXISTS parks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  address TEXT,
+  city TEXT,
+  state TEXT,
+  maps_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Add park_id to tournaments
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS park_id UUID REFERENCES parks(id) ON DELETE SET NULL;
+
+-- RLS policies for parks
+ALTER TABLE parks ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Authenticated users can view parks" ON parks;
+CREATE POLICY "Authenticated users can view parks" ON parks
+  FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can insert parks" ON parks;
+CREATE POLICY "Authenticated users can insert parks" ON parks
+  FOR INSERT TO authenticated WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Authenticated users can update parks" ON parks;
+CREATE POLICY "Authenticated users can update parks" ON parks
+  FOR UPDATE TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can delete parks" ON parks;
+CREATE POLICY "Authenticated users can delete parks" ON parks
+  FOR DELETE TO authenticated USING (true);
+
+-- Allow anonymous users to view parks (for public pages)
+DROP POLICY IF EXISTS "Anyone can view parks" ON parks;
+CREATE POLICY "Anyone can view parks" ON parks
+  FOR SELECT TO anon USING (true);
