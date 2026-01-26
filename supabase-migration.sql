@@ -159,3 +159,31 @@ CREATE POLICY "Authenticated users can delete parks" ON parks
 DROP POLICY IF EXISTS "Anyone can view parks" ON parks;
 CREATE POLICY "Anyone can view parks" ON parks
   FOR SELECT TO anon USING (true);
+
+-- Junction table for tournaments and parks (many-to-many)
+CREATE TABLE IF NOT EXISTS tournament_parks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tournament_id UUID REFERENCES tournaments(id) ON DELETE CASCADE,
+  park_id UUID REFERENCES parks(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(tournament_id, park_id)
+);
+
+-- RLS policies for tournament_parks
+ALTER TABLE tournament_parks ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Authenticated users can view tournament_parks" ON tournament_parks;
+CREATE POLICY "Authenticated users can view tournament_parks" ON tournament_parks
+  FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can insert tournament_parks" ON tournament_parks;
+CREATE POLICY "Authenticated users can insert tournament_parks" ON tournament_parks
+  FOR INSERT TO authenticated WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Authenticated users can delete tournament_parks" ON tournament_parks;
+CREATE POLICY "Authenticated users can delete tournament_parks" ON tournament_parks
+  FOR DELETE TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Anyone can view tournament_parks" ON tournament_parks;
+CREATE POLICY "Anyone can view tournament_parks" ON tournament_parks
+  FOR SELECT TO anon USING (true);

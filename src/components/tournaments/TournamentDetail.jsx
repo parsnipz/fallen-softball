@@ -16,6 +16,7 @@ export default function TournamentDetail({
   lodgingOptions = [],
   loading,
   players,
+  parks = [],
   onInvitePlayer,
   onUpdateStatus,
   onUpdatePaid,
@@ -29,8 +30,19 @@ export default function TournamentDetail({
   onDeleteLodging,
   onUploadImage,
   onUpdateTournament,
+  onAddTournamentPark,
+  onRemoveTournamentPark,
 }) {
   const [showInviteModal, setShowInviteModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    type: 'coed',
+    date: '',
+    location: '',
+    total_cost: '',
+    venmo_link: '',
+  })
   const [copied, setCopied] = useState(false)
   const [customDivisor, setCustomDivisor] = useState('')
   const [copiedSignatureLink, setCopiedSignatureLink] = useState(null)
@@ -226,6 +238,45 @@ export default function TournamentDetail({
     }
   }
 
+  // Edit tournament handlers
+  const handleOpenEditModal = () => {
+    setEditFormData({
+      name: tournament.name || '',
+      type: tournament.type || 'coed',
+      date: tournament.date || '',
+      location: tournament.location || '',
+      total_cost: tournament.total_cost || '',
+      venmo_link: tournament.venmo_link || '',
+    })
+    setShowEditModal(true)
+  }
+
+  const handleSaveEdit = async () => {
+    await onUpdateTournament({
+      name: editFormData.name,
+      type: editFormData.type,
+      date: editFormData.date,
+      location: editFormData.location,
+      total_cost: editFormData.total_cost || null,
+      venmo_link: editFormData.venmo_link || null,
+    })
+    setShowEditModal(false)
+  }
+
+  const handleAddPark = async (parkId) => {
+    if (!parkId) return
+    await onAddTournamentPark(parkId)
+  }
+
+  const handleRemovePark = async (parkId) => {
+    await onRemoveTournamentPark(parkId)
+  }
+
+  // Get parks that aren't already added to this tournament
+  const availableParks = parks.filter(
+    park => !(tournament?.parks || []).find(tp => tp.id === park.id)
+  )
+
   // Signature link helpers
   const baseUrl = window.location.origin
   const getSignatureLink = (inv) => `${baseUrl}/sign/${inv.signature_token}`
@@ -360,31 +411,41 @@ export default function TournamentDetail({
               {formatDate(tournament.date)}
               {tournament.location && ` • ${tournament.location}`}
             </p>
-            {tournament.park && (
-              <p className="text-gray-500">
-                {tournament.park.maps_url ? (
-                  <a
-                    href={tournament.park.maps_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {tournament.park.name}
-                  </a>
-                ) : (
-                  <span>{tournament.park.name}</span>
-                )}
-                {tournament.park.city && tournament.park.state && (
-                  <span className="text-gray-400"> ({tournament.park.city}, {tournament.park.state})</span>
-                )}
-              </p>
+            {tournament.parks && tournament.parks.length > 0 && (
+              <div className="flex flex-wrap gap-x-4 gap-y-1">
+                {tournament.parks.map((park) => (
+                  <span key={park.id} className="text-gray-500">
+                    {park.maps_url ? (
+                      <a
+                        href={park.maps_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        {park.name}
+                      </a>
+                    ) : (
+                      <span>{park.name}</span>
+                    )}
+                    {park.city && park.state && (
+                      <span className="text-gray-400"> ({park.city}, {park.state})</span>
+                    )}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
           <div className="flex gap-2">
+            <button
+              onClick={handleOpenEditModal}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              Edit
+            </button>
             <button
               onClick={handleExportAFAForm}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
@@ -980,6 +1041,180 @@ export default function TournamentDetail({
           onInvite={onInvitePlayer}
           onClose={() => setShowInviteModal(false)}
         />
+      )}
+
+      {/* Edit Tournament Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold mb-4">Edit Tournament</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tournament Name *
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Type *
+                  </label>
+                  <select
+                    value={editFormData.type}
+                    onChange={(e) => setEditFormData({ ...editFormData, type: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="coed">Coed</option>
+                    <option value="mens">Mens</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Date *
+                  </label>
+                  <input
+                    type="date"
+                    value={editFormData.date}
+                    onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.location}
+                  onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="City, State"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Total Cost ($)
+                  </label>
+                  <input
+                    type="number"
+                    value={editFormData.total_cost}
+                    onChange={(e) => setEditFormData({ ...editFormData, total_cost: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Venmo Link
+                  </label>
+                  <input
+                    type="url"
+                    value={editFormData.venmo_link}
+                    onChange={(e) => setEditFormData({ ...editFormData, venmo_link: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="https://venmo.com/..."
+                  />
+                </div>
+              </div>
+
+              {/* Parks Management */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Parks
+                </label>
+
+                {/* Current Parks */}
+                {tournament.parks && tournament.parks.length > 0 && (
+                  <div className="mb-3 space-y-2">
+                    {tournament.parks.map((park) => (
+                      <div
+                        key={park.id}
+                        className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-md"
+                      >
+                        <div className="flex items-center gap-2">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <span className="text-sm text-gray-900">{park.name}</span>
+                          {park.city && park.state && (
+                            <span className="text-xs text-gray-500">({park.city}, {park.state})</span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleRemovePark(park.id)}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add Park */}
+                {availableParks.length > 0 ? (
+                  <div className="flex gap-2">
+                    <select
+                      id="add-park-select"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      defaultValue=""
+                    >
+                      <option value="">Select a park to add...</option>
+                      {availableParks.map((park) => (
+                        <option key={park.id} value={park.id}>
+                          {park.name} {park.city && park.state ? `(${park.city}, ${park.state})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => {
+                        const select = document.getElementById('add-park-select')
+                        handleAddPark(select.value)
+                        select.value = ''
+                      }}
+                      className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                      Add
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    {parks.length === 0
+                      ? 'No parks available. Add parks in the Parks page first.'
+                      : 'All parks have been added to this tournament.'}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={!editFormData.name || !editFormData.date}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

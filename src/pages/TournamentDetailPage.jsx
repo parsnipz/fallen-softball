@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useTournamentDetail } from '../hooks/useTournaments'
 import { usePlayers } from '../hooks/usePlayers'
+import { useParks } from '../hooks/useParks'
 import TournamentDetail from '../components/tournaments/TournamentDetail'
 
 export default function TournamentDetailPage() {
@@ -25,11 +26,14 @@ export default function TournamentDetailPage() {
     deleteLodgingOption,
     uploadTournamentImage,
     updateTournament,
+    addTournamentPark,
+    removeTournamentPark,
   } = useTournamentDetail(id)
 
   const { players, loading: playersLoading } = usePlayers()
+  const { parks, loading: parksLoading } = useParks()
 
-  const loading = tournamentLoading || playersLoading
+  const loading = tournamentLoading || playersLoading || parksLoading
 
   if (tournamentError) {
     return (
@@ -47,6 +51,7 @@ export default function TournamentDetailPage() {
       lodgingOptions={lodgingOptions}
       loading={loading}
       players={players}
+      parks={parks}
       onInvitePlayer={invitePlayer}
       onUpdateStatus={updateInvitationStatus}
       onUpdatePaid={updateInvitationPaid}
@@ -60,6 +65,8 @@ export default function TournamentDetailPage() {
       onDeleteLodging={deleteLodgingOption}
       onUploadImage={uploadTournamentImage}
       onUpdateTournament={updateTournament}
+      onAddTournamentPark={addTournamentPark}
+      onRemoveTournamentPark={removeTournamentPark}
     />
   )
 }

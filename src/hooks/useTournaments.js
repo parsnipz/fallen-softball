@@ -111,17 +111,35 @@ export function useTournamentDetail(tournamentId) {
       setLoading(true)
       setError(null)
 
-      // Fetch tournament with park info
+      // Fetch tournament with parks through junction table
       const { data: tournamentData, error: tournamentError } = await supabase
         .from('tournaments')
         .select(`
           *,
-          park:parks(*)
+          park:parks(*),
+          tournament_parks(
+            park:parks(*)
+          )
         `)
         .eq('id', tournamentId)
         .single()
 
       if (tournamentError) throw tournamentError
+
+      // Flatten parks from junction table
+      if (tournamentData.tournament_parks) {
+        tournamentData.parks = tournamentData.tournament_parks
+          .map(tp => tp.park)
+          .filter(Boolean)
+        delete tournamentData.tournament_parks
+      } else {
+        tournamentData.parks = []
+      }
+
+      // Keep backward compatibility with single park
+      if (tournamentData.park && !tournamentData.parks.find(p => p.id === tournamentData.park.id)) {
+        tournamentData.parks.unshift(tournamentData.park)
+      }
 
       // Fetch invitations with player details
       const { data: invitationsData, error: invitationsError } = await supabase
@@ -431,11 +449,63 @@ export function useTournamentDetail(tournamentId) {
         .single()
 
       if (error) throw error
-      setTournament(data)
+      setTournament(prev => ({ ...prev, ...data }))
       return { data, error: null }
     } catch (err) {
       console.error('Error updating tournament:', err)
       return { data: null, error: err.message }
+    }
+  }
+
+  const addTournamentPark = async (parkId) => {
+    try {
+      const { data, error } = await supabase
+        .from('tournament_parks')
+        .insert([{
+          tournament_id: tournamentId,
+          park_id: parkId
+        }])
+        .select(`
+          *,
+          park:parks(*)
+        `)
+        .single()
+
+      if (error) throw error
+
+      // Add the park to local state
+      if (data.park) {
+        setTournament(prev => ({
+          ...prev,
+          parks: [...(prev.parks || []), data.park]
+        }))
+      }
+      return { data, error: null }
+    } catch (err) {
+      console.error('Error adding park to tournament:', err)
+      return { data: null, error: err.message }
+    }
+  }
+
+  const removeTournamentPark = async (parkId) => {
+    try {
+      const { error } = await supabase
+        .from('tournament_parks')
+        .delete()
+        .eq('tournament_id', tournamentId)
+        .eq('park_id', parkId)
+
+      if (error) throw error
+
+      // Remove the park from local state
+      setTournament(prev => ({
+        ...prev,
+        parks: (prev.parks || []).filter(p => p.id !== parkId)
+      }))
+      return { error: null }
+    } catch (err) {
+      console.error('Error removing park from tournament:', err)
+      return { error: err.message }
     }
   }
 
@@ -460,5 +530,7 @@ export function useTournamentDetail(tournamentId) {
     deleteLodgingOption,
     uploadTournamentImage,
     updateTournament,
+    addTournamentPark,
+    removeTournamentPark,
   }
 }
