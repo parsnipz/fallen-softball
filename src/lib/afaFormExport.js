@@ -191,7 +191,7 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
 
   if (settings.managerAddress) {
     page.drawText(settings.managerAddress, {
-      x: 80,
+      x: 70,
       y: addressLineY,
       size: managerFontSize,
       color: textColor,
@@ -222,13 +222,28 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     color: textColor,
   })
 
+  // Manager Signature (x=630)
+  if (managerPlayer && managerPlayer.signatureUrl && signatureImages[managerPlayer.signatureUrl]) {
+    const sigImg = signatureImages[managerPlayer.signatureUrl]
+    const sigAspect = sigImg.width / sigImg.height
+    const sigH = signatureHeight
+    const sigW = sigH * sigAspect
+
+    page.drawImage(sigImg, {
+      x: 630,
+      y: addressLineY - 4,
+      width: Math.min(sigW, 150),
+      height: sigH,
+    })
+  }
+
   // === PLAYER ROWS ===
-  // Player table header is at ~178 from top
-  // First player row starts at ~198 from top
-  // Each row is 18 points tall
+  // Player table header is at ~181 from top
+  // First player row starts at ~201 from top
+  // Each row is 19 points tall
   // There are 16 player rows
-  const playerStartY = height - 198
-  const rowHeight = 18
+  const playerStartY = height - 201
+  const rowHeight = 19
   const maxPlayers = 16
 
   // Column X positions for player table
