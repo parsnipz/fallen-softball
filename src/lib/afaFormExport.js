@@ -93,6 +93,9 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     if (!settings.managerCell && managerPlayer.phone) {
       settings.managerCell = managerPlayer.phone
     }
+    if (!settings.managerAddress && managerPlayer.address) {
+      settings.managerAddress = managerPlayer.address
+    }
   }
 
   // === COORDINATE SYSTEM ===
@@ -216,12 +219,12 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   })
 
   // === PLAYER ROWS ===
-  // Player table header is at ~210 from top
-  // First player row starts at ~235 from top
-  // Each row is approximately 24 points tall
+  // Player table header is at ~175 from top
+  // First player row starts at ~195 from top
+  // Each row is 20 points tall
   // There are 16 player rows
-  const playerStartY = height - 235
-  const rowHeight = 19.3
+  const playerStartY = height - 195
+  const rowHeight = 20
   const maxPlayers = 16
 
   // Column X positions for player table

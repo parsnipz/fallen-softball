@@ -84,13 +84,15 @@ export async function createCalibrationPDF() {
     { name: 'Mgr Email', x: 318, fromTop: 128 },
     { name: 'Mgr Phone', x: 490, fromTop: 128 },
     { name: 'Mgr Cell', x: 645, fromTop: 128 },
+    // Manager address
+    { name: 'Mgr Addr', x: 80, fromTop: 150 },
     // Player row 1
-    { name: 'P1 Name', x: 61, fromTop: 235 },
-    { name: 'P1 DOB', x: 230, fromTop: 235 },
-    { name: 'P1 Addr', x: 284, fromTop: 235 },
-    { name: 'P1 Sig', x: 630, fromTop: 235 },
+    { name: 'P1 Name', x: 61, fromTop: 195 },
+    { name: 'P1 DOB', x: 230, fromTop: 195 },
+    { name: 'P1 Addr', x: 284, fromTop: 195 },
+    { name: 'P1 Sig', x: 630, fromTop: 195 },
     // Player row 2 (to show row spacing)
-    { name: 'P2 Name', x: 61, fromTop: 235 + 19.3 },
+    { name: 'P2 Name', x: 61, fromTop: 215 },
     // Coach row 1
     { name: 'Coach1', x: 101, fromTop: 560 },
     { name: 'C1 Sig', x: 303, fromTop: 560 },
