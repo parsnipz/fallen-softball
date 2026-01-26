@@ -35,6 +35,7 @@ export async function exportRosterPDF(tournament, invitations) {
       firstName: inv.player?.first_name || '',
       lastName: inv.player?.last_name || '',
       phone: inv.player?.phone || '',
+      email: inv.player?.email || '',
       address: inv.player?.address || '',
       gender: inv.player?.gender || '',
       signatureUrl: inv.signature_url || null,
@@ -93,11 +94,12 @@ export async function exportRosterPDF(tournament, invitations) {
   // Table with fixed row heights
   autoTable(doc, {
     startY: yPos,
-    head: [['#', 'Name', 'Phone', 'Address', 'Signature']],
+    head: [['#', 'Name', 'Phone', 'Email', 'Address', 'Signature']],
     body: allPlayers.map((player, index) => [
       index + 1,
       player.isCoach ? player.name + ' (Coach)' : player.name,
       player.phone,
+      player.email,
       player.address,
       ''
     ]),
@@ -117,10 +119,11 @@ export async function exportRosterPDF(tournament, invitations) {
     },
     columnStyles: {
       0: { cellWidth: 8, halign: 'center' },
-      1: { cellWidth: 45 },
-      2: { cellWidth: 30 },
-      3: { cellWidth: 90 },
-      4: { cellWidth: 94 }  // Wider signature column
+      1: { cellWidth: 40 },
+      2: { cellWidth: 28 },
+      3: { cellWidth: 50 },
+      4: { cellWidth: 75 },
+      5: { cellWidth: 66 }
     },
     margin: { left: 10, right: 10 },
     didDrawCell: (data) => {
@@ -128,7 +131,7 @@ export async function exportRosterPDF(tournament, invitations) {
         const player = allPlayers[data.row.index]
 
         // Add signature images - maintain aspect ratio
-        if (data.column.index === 4 && player.signatureUrl && signatureImages[player.signatureUrl]) {
+        if (data.column.index === 5 && player.signatureUrl && signatureImages[player.signatureUrl]) {
           const imgData = signatureImages[player.signatureUrl]
           const padding = 1
           const maxHeight = data.cell.height - (padding * 2)
