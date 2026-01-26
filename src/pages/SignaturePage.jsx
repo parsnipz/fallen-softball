@@ -161,12 +161,21 @@ export default function SignaturePage() {
             <p>
               By signing below, I confirm that:
             </p>
-            <ul className="list-disc list-inside space-y-1 ml-2">
-              <li>I am the player listed above or their authorized guardian</li>
-              <li>I agree to participate in this tournament</li>
-              <li>I understand that softball involves physical activity and risk of injury</li>
-              <li>I release the team organizers from liability for injuries during play</li>
-            </ul>
+           <ul style="line-height: 1.5;">
+  <li>I, the undersigned, acting for myself (or as parent or guardian of the listed child or ward):</li>
+  <li>(1) Hereby assume all risks of injury to me (or my child or ward) from property damage and/or personal injury, including but not limited to death, arising from or related in any way to:
+    <ul>
+      <li>(a) My presence on, or use of (or the presence of my child or ward on, or use by my child or ward of), real or personal property owned or operated by the City of St. George, and/or</li>
+      <li>(b) My participation (or the participation by my child or ward) at any time in the listed activities.</li>
+    </ul>
+  </li>
+  <li>(2) Hereby waive all claims against the City of St. George, and its agents and employees, related to the above injuries, regardless of foreseeability, including but not limited to any claims related to injury caused in whole or in part by the negligence of the City of St. George or its agents or employees.</li>
+  <li>(3) Hereby agree to indemnify and hold harmless the City of St. George, and its agents and employees from all such claims.</li>
+  <li>(4) Grant permission for my photograph to be taken and used for lawful purposes, and I acknowledge that I shall have no further claim to the resulting images or their subsequent use, unless otherwise agreed in writing.</li>
+  <li>I have read this release and waiver of liability for the American Fastpitch Association (AFA) and in consideration of being allowed to participate in any way in AFA related events and activities, the undersigned agree to not hold liable the association, directors, schools or parks where softball/baseball events are to take place.</li>
+  <li>In case I am injured during practice/games on the premises I give up my right to file a claim(s) against AFA.</li>
+  <li>I understand that I have given up substantial rights by signing this form and I have signed it freely and voluntarily.</li>
+</ul>
           </div>
         </div>
 
