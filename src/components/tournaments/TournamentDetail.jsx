@@ -855,10 +855,11 @@ export default function TournamentDetail({
             <div className="grid grid-cols-2 gap-2">
               <AddressAutocomplete
                 value={newLodging.address}
-                onChange={(val) => setNewLodging(prev => ({
+                onChange={(val) => setNewLodging(prev => ({ ...prev, address: val }))}
+                onPlaceSelect={(place) => setNewLodging(prev => ({
                   ...prev,
-                  address: val,
-                  maps_url: val ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(val)}` : ''
+                  address: place.address,
+                  maps_url: place.maps_url
                 }))}
                 placeholder="Search address..."
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
@@ -1378,10 +1379,11 @@ export default function TournamentDetail({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
                 <AddressAutocomplete
                   value={editingLodging.address}
-                  onChange={(val) => setEditingLodging(prev => ({
+                  onChange={(val) => setEditingLodging(prev => ({ ...prev, address: val }))}
+                  onPlaceSelect={(place) => setEditingLodging(prev => ({
                     ...prev,
-                    address: val,
-                    maps_url: val ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(val)}` : prev.maps_url
+                    address: place.address,
+                    maps_url: place.maps_url
                   }))}
                   placeholder="Search address..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"

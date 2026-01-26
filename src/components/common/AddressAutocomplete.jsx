@@ -36,11 +36,19 @@ function loadGoogleMaps() {
   return googleMapsPromise
 }
 
-export default function AddressAutocomplete({ value, onChange, placeholder, className }) {
+export default function AddressAutocomplete({ value, onChange, onPlaceSelect, placeholder, className }) {
   const inputRef = useRef(null)
   const autocompleteRef = useRef(null)
+  const onPlaceSelectRef = useRef(onPlaceSelect)
+  const onChangeRef = useRef(onChange)
   const [isLoaded, setIsLoaded] = useState(false)
   const [error, setError] = useState(null)
+
+  // Keep refs updated with latest callbacks
+  useEffect(() => {
+    onPlaceSelectRef.current = onPlaceSelect
+    onChangeRef.current = onChange
+  }, [onPlaceSelect, onChange])
 
   useEffect(() => {
     if (!GOOGLE_API_KEY) {
@@ -66,13 +74,21 @@ export default function AddressAutocomplete({ value, onChange, placeholder, clas
       const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
         types: ['address'],
         componentRestrictions: { country: 'us' },
-        fields: ['formatted_address'],
+        fields: ['formatted_address', 'place_id'],
       })
 
       autocomplete.addListener('place_changed', () => {
         const place = autocomplete.getPlace()
         if (place?.formatted_address) {
-          onChange(place.formatted_address)
+          const address = place.formatted_address
+          const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}&query_place_id=${place.place_id || ''}`
+
+          // Call onPlaceSelect if provided, otherwise just onChange
+          if (onPlaceSelectRef.current) {
+            onPlaceSelectRef.current({ address, maps_url: mapsUrl })
+          } else if (onChangeRef.current) {
+            onChangeRef.current(address)
+          }
         }
       })
 
@@ -87,11 +103,13 @@ export default function AddressAutocomplete({ value, onChange, placeholder, clas
         window.google.maps.event.clearInstanceListeners(autocompleteRef.current)
       }
     }
-  }, [isLoaded, onChange])
+  }, [isLoaded])
 
   // Handle manual input changes
   const handleInputChange = (e) => {
-    onChange(e.target.value)
+    if (onChange) {
+      onChange(e.target.value)
+    }
   }
 
   // Prevent form submission on Enter when selecting from dropdown
