@@ -392,13 +392,13 @@ export default function TournamentDetail({
       </div>
 
       {/* Tournament Image */}
-      <div className="mb-6">
+      <div className="mb-6 flex justify-center">
         {tournament.image_url ? (
-          <div className="relative">
+          <div className="relative w-1/2">
             <img
               src={tournament.image_url}
               alt={tournament.name}
-              className="w-full max-h-64 object-cover rounded-lg"
+              className="w-full rounded-lg"
             />
             <label className="absolute bottom-2 right-2 px-3 py-1 text-sm bg-white/90 rounded-md cursor-pointer hover:bg-white">
               Change Image
@@ -412,7 +412,7 @@ export default function TournamentDetail({
             </label>
           </div>
         ) : (
-          <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 bg-gray-50">
+          <label className="flex items-center justify-center w-1/2 h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 bg-gray-50">
             <div className="text-center">
               <span className="text-gray-500">
                 {uploadingImage ? 'Uploading...' : 'Click to add tournament image'}
