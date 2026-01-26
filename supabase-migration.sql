@@ -110,3 +110,10 @@ ALTER TABLE documents ADD COLUMN IF NOT EXISTS is_waiver BOOLEAN DEFAULT FALSE;
 DROP POLICY IF EXISTS "Anyone can view documents" ON documents;
 CREATE POLICY "Anyone can view documents" ON documents
   FOR SELECT TO anon USING (true);
+
+-- =============================================
+-- TOURNAMENT IMAGE FEATURE
+-- =============================================
+
+-- Add image_url to tournaments
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS image_url TEXT;

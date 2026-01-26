@@ -27,6 +27,8 @@ export default function TournamentDetail({
   onAddLodging,
   onUpdateLodgingOption,
   onDeleteLodging,
+  onUploadImage,
+  onUpdateTournament,
 }) {
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -36,6 +38,7 @@ export default function TournamentDetail({
   const [showAddLodging, setShowAddLodging] = useState(false)
   const [newLodging, setNewLodging] = useState({ name: '', url: '', capacity: '', total_cost: '', venmo_link: '' })
   const [copiedLodgingPayment, setCopiedLodgingPayment] = useState(null)
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   // Calculate status counts
   const statusCounts = useMemo(() => {
@@ -209,6 +212,20 @@ export default function TournamentDetail({
     await createCalibrationPDF()
   }
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingImage(true)
+    try {
+      await onUploadImage(file)
+    } catch (err) {
+      console.error('Error uploading image:', err)
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
   // Signature link helpers
   const baseUrl = window.location.origin
   const getSignatureLink = (inv) => `${baseUrl}/sign/${inv.signature_token}`
@@ -372,6 +389,44 @@ export default function TournamentDetail({
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Tournament Image */}
+      <div className="mb-6">
+        {tournament.image_url ? (
+          <div className="relative">
+            <img
+              src={tournament.image_url}
+              alt={tournament.name}
+              className="w-full max-h-64 object-cover rounded-lg"
+            />
+            <label className="absolute bottom-2 right-2 px-3 py-1 text-sm bg-white/90 rounded-md cursor-pointer hover:bg-white">
+              Change Image
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+                disabled={uploadingImage}
+              />
+            </label>
+          </div>
+        ) : (
+          <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 bg-gray-50">
+            <div className="text-center">
+              <span className="text-gray-500">
+                {uploadingImage ? 'Uploading...' : 'Click to add tournament image'}
+              </span>
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              disabled={uploadingImage}
+            />
+          </label>
+        )}
       </div>
 
       {/* Status Summary */}

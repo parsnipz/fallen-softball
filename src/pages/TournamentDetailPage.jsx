@@ -23,6 +23,8 @@ export default function TournamentDetailPage() {
     addLodgingOption,
     updateLodgingOption,
     deleteLodgingOption,
+    uploadTournamentImage,
+    updateTournament,
   } = useTournamentDetail(id)
 
   const { players, loading: playersLoading } = usePlayers()
@@ -56,6 +58,8 @@ export default function TournamentDetailPage() {
       onAddLodging={addLodgingOption}
       onUpdateLodgingOption={updateLodgingOption}
       onDeleteLodging={deleteLodgingOption}
+      onUploadImage={uploadTournamentImage}
+      onUpdateTournament={updateTournament}
     />
   )
 }

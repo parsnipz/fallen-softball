@@ -383,6 +383,59 @@ export function useTournamentDetail(tournamentId) {
     }
   }
 
+  const uploadTournamentImage = async (file) => {
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `tournament-${tournamentId}-${Date.now()}.${fileExt}`
+      const filePath = `tournament-images/${fileName}`
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file)
+
+      if (uploadError) throw uploadError
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('documents')
+        .getPublicUrl(filePath)
+
+      // Update tournament with image URL
+      const { data, error: updateError } = await supabase
+        .from('tournaments')
+        .update({ image_url: publicUrl })
+        .eq('id', tournamentId)
+        .select()
+        .single()
+
+      if (updateError) throw updateError
+      setTournament(data)
+      return { data, error: null }
+    } catch (err) {
+      console.error('Error uploading tournament image:', err)
+      return { data: null, error: err.message }
+    }
+  }
+
+  const updateTournament = async (tournamentData) => {
+    try {
+      const { data, error } = await supabase
+        .from('tournaments')
+        .update(tournamentData)
+        .eq('id', tournamentId)
+        .select()
+        .single()
+
+      if (error) throw error
+      setTournament(data)
+      return { data, error: null }
+    } catch (err) {
+      console.error('Error updating tournament:', err)
+      return { data: null, error: err.message }
+    }
+  }
+
   return {
     tournament,
     invitations,
@@ -402,5 +455,7 @@ export function useTournamentDetail(tournamentId) {
     addLodgingOption,
     updateLodgingOption,
     deleteLodgingOption,
+    uploadTournamentImage,
+    updateTournament,
   }
 }
