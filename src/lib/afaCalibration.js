@@ -17,48 +17,51 @@ export async function createCalibrationPDF() {
 
   console.log('PDF Dimensions:', width, 'x', height)
 
-  // Draw grid lines every 50 points
-  const gridColor = rgb(0.8, 0.8, 1) // light blue
+  // Draw grid lines every 10 points
+  const gridColor = rgb(0.85, 0.85, 1) // very light blue
+  const midGridColor = rgb(0.7, 0.7, 1) // light blue for every 50
   const majorGridColor = rgb(0.5, 0.5, 1) // darker blue for every 100
 
   // Vertical lines (X axis)
-  for (let x = 0; x <= width; x += 50) {
+  for (let x = 0; x <= width; x += 10) {
     const isMajor = x % 100 === 0
+    const isMid = x % 50 === 0
     page.drawLine({
       start: { x, y: 0 },
       end: { x, y: height },
-      thickness: isMajor ? 1 : 0.5,
-      color: isMajor ? majorGridColor : gridColor,
-      opacity: 0.5,
+      thickness: isMajor ? 1 : (isMid ? 0.5 : 0.25),
+      color: isMajor ? majorGridColor : (isMid ? midGridColor : gridColor),
+      opacity: isMajor ? 0.6 : (isMid ? 0.5 : 0.3),
     })
-    // Label X coordinates at top
-    if (isMajor) {
+    // Label X coordinates at top (every 50)
+    if (isMid) {
       page.drawText(String(x), {
         x: x + 2,
         y: height - 12,
-        size: 8,
+        size: 7,
         color: rgb(0, 0, 1),
       })
     }
   }
 
   // Horizontal lines (Y axis - remember PDF origin is bottom-left)
-  for (let y = 0; y <= height; y += 50) {
+  for (let y = 0; y <= height; y += 10) {
     const isMajor = y % 100 === 0
+    const isMid = y % 50 === 0
     page.drawLine({
       start: { x: 0, y },
       end: { x: width, y },
-      thickness: isMajor ? 1 : 0.5,
-      color: isMajor ? majorGridColor : gridColor,
-      opacity: 0.5,
+      thickness: isMajor ? 1 : (isMid ? 0.5 : 0.25),
+      color: isMajor ? majorGridColor : (isMid ? midGridColor : gridColor),
+      opacity: isMajor ? 0.6 : (isMid ? 0.5 : 0.3),
     })
-    // Label Y coordinates on left (show both Y and fromTop)
-    if (isMajor) {
+    // Label Y coordinates on left (every 50)
+    if (isMid) {
       const fromTop = Math.round(height - y)
       page.drawText(`y=${y} (top-${fromTop})`, {
         x: 2,
         y: y + 2,
-        size: 7,
+        size: 6,
         color: rgb(0, 0, 1),
       })
     }
