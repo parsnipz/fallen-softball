@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AFA Form Coordinate Tool</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #333; }
+
+    .container {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .pdf-wrapper {
+      position: relative;
+      background: white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .pdf-wrapper iframe {
+      display: block;
+      pointer-events: none;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 792px;
+      height: 612px;
+    }
+
+    .field {
+      position: absolute;
+      background: rgba(255, 255, 0, 0.3);
+      border: 1px solid #f00;
+      cursor: move;
+      padding: 2px 4px;
+      font-size: 10px;
+      font-family: Helvetica, Arial, sans-serif;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .field:hover {
+      background: rgba(255, 255, 0, 0.6);
+    }
+
+    .field.active {
+      background: rgba(0, 255, 0, 0.4);
+      border-color: #0f0;
+      z-index: 100;
+    }
+
+    .panel {
+      background: #222;
+      color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 400px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .panel h2 {
+      margin-bottom: 15px;
+      color: #ff0;
+    }
+
+    .panel h3 {
+      margin: 15px 0 10px;
+      color: #0ff;
+      font-size: 14px;
+    }
+
+    .coord-display {
+      font-family: monospace;
+      font-size: 12px;
+      margin-bottom: 5px;
+      padding: 5px;
+      background: #333;
+      border-radius: 4px;
+    }
+
+    .coord-display span {
+      color: #0f0;
+    }
+
+    .instructions {
+      background: #444;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    #output {
+      background: #000;
+      color: #0f0;
+      padding: 15px;
+      font-family: monospace;
+      font-size: 11px;
+      white-space: pre;
+      border-radius: 4px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 15px;
+    }
+
+    button {
+      background: #0066cc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background: #0088ff;
+    }
+
+    .note {
+      color: #999;
+      font-size: 11px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="pdf-wrapper">
+      <iframe src="/afa-roster-form.pdf" width="792" height="612" style="border:none;"></iframe>
+      <div class="overlay" id="overlay">
+        <!-- Fields will be added here -->
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>AFA Form Coordinate Tool</h2>
+
+      <div class="instructions">
+        <strong>Instructions:</strong><br>
+        1. Drag the yellow fields to position them correctly on the form<br>
+        2. The PDF origin is bottom-left, so Y increases upward<br>
+        3. Click "Copy Coordinates" when done<br>
+        4. Share the output with Claude to update the code
+      </div>
+
+      <h3>Header Section</h3>
+      <div class="coord-display" id="coord-teamName">Team Name: x=<span>158</span>, fromTop=<span>55</span></div>
+      <div class="coord-display" id="coord-class">Class: x=<span>398</span>, fromTop=<span>55</span></div>
+      <div class="coord-display" id="coord-division">Division: x=<span>473</span>, fromTop=<span>55</span></div>
+
+      <h3>Manager Section</h3>
+      <div class="coord-display" id="coord-managerName">Manager: x=<span>95</span>, fromTop=<span>95</span></div>
+      <div class="coord-display" id="coord-managerCity">City: x=<span>253</span>, fromTop=<span>110</span></div>
+      <div class="coord-display" id="coord-managerState">State: x=<span>408</span>, fromTop=<span>110</span></div>
+      <div class="coord-display" id="coord-managerZip">Zip: x=<span>473</span>, fromTop=<span>110</span></div>
+
+      <h3>Player Section</h3>
+      <div class="coord-display" id="coord-player1">Player 1: x=<span>27</span>, fromTop=<span>143</span></div>
+      <div class="coord-display" id="coord-player1dob">Player 1 DOB: x=<span>163</span>, fromTop=<span>143</span></div>
+      <div class="coord-display" id="coord-player1addr">Player 1 Addr: x=<span>235</span>, fromTop=<span>143</span></div>
+      <div class="coord-display" id="coord-player1sig">Player 1 Sig: x=<span>545</span>, fromTop=<span>143</span></div>
+
+      <h3>Coach Section</h3>
+      <div class="coord-display" id="coord-coach1">Coach 1: x=<span>27</span>, fromTop=<span>548</span></div>
+      <div class="coord-display" id="coord-coach1sig">Coach 1 Sig: x=<span>200</span>, fromTop=<span>548</span></div>
+
+      <button onclick="copyCoordinates()">Copy Coordinates</button>
+
+      <div id="output"></div>
+
+      <p class="note">Note: fromTop values are converted to PDF Y coordinates using: y = height - fromTop (where height = 612 for letter landscape)</p>
+    </div>
+  </div>
+
+  <script>
+    const PAGE_HEIGHT = 612;
+    const PAGE_WIDTH = 792;
+
+    // Field definitions: id, label, initial x, initial fromTop
+    const fields = [
+      { id: 'teamName', label: 'Fallen', x: 158, fromTop: 55 },
+      { id: 'class', label: 'D', x: 398, fromTop: 55 },
+      { id: 'division', label: 'Coed', x: 473, fromTop: 55 },
+      { id: 'managerName', label: 'Layne Reed', x: 95, fromTop: 95 },
+      { id: 'managerCity', label: 'St. George', x: 253, fromTop: 110 },
+      { id: 'managerState', label: 'UT', x: 408, fromTop: 110 },
+      { id: 'managerZip', label: '84770', x: 473, fromTop: 110 },
+      { id: 'player1', label: 'J.D. Willcox', x: 27, fromTop: 143 },
+      { id: 'player1dob', label: '02/17/1980', x: 163, fromTop: 143 },
+      { id: 'player1addr', label: '2252 S Rock Pk Dr...', x: 235, fromTop: 143 },
+      { id: 'player1sig', label: '[signature]', x: 545, fromTop: 143 },
+      { id: 'coach1', label: 'Coach Name', x: 27, fromTop: 548 },
+      { id: 'coach1sig', label: '[coach sig]', x: 200, fromTop: 548 },
+    ];
+
+    const overlay = document.getElementById('overlay');
+    const fieldElements = {};
+    const coordinates = {};
+
+    // Create draggable fields
+    fields.forEach(f => {
+      const el = document.createElement('div');
+      el.className = 'field';
+      el.textContent = f.label;
+      el.style.left = f.x + 'px';
+      el.style.top = f.fromTop + 'px';
+      el.dataset.id = f.id;
+      overlay.appendChild(el);
+      fieldElements[f.id] = el;
+      coordinates[f.id] = { x: f.x, fromTop: f.fromTop };
+
+      // Make draggable
+      let isDragging = false;
+      let startX, startY, startLeft, startTop;
+
+      el.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        el.classList.add('active');
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = parseInt(el.style.left);
+        startTop = parseInt(el.style.top);
+        e.preventDefault();
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        const newLeft = Math.max(0, Math.min(PAGE_WIDTH - 50, startLeft + dx));
+        const newTop = Math.max(0, Math.min(PAGE_HEIGHT - 20, startTop + dy));
+        el.style.left = newLeft + 'px';
+        el.style.top = newTop + 'px';
+        coordinates[f.id] = { x: Math.round(newLeft), fromTop: Math.round(newTop) };
+        updateCoordDisplay(f.id);
+      });
+
+      document.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          el.classList.remove('active');
+        }
+      });
+    });
+
+    function updateCoordDisplay(id) {
+      const display = document.getElementById('coord-' + id);
+      if (display) {
+        const spans = display.querySelectorAll('span');
+        spans[0].textContent = coordinates[id].x;
+        spans[1].textContent = coordinates[id].fromTop;
+      }
+    }
+
+    function copyCoordinates() {
+      const output = `AFA Form Coordinates (updated):
+
+// Header line (fromTop for teamLineY)
+teamLineY = height - ${coordinates.teamName.fromTop}
+Team Name x: ${coordinates.teamName.x}
+Class x: ${coordinates.class.x}
+Division x: ${coordinates.division.x}
+
+// Manager line (fromTop for managerLineY)
+managerLineY = height - ${coordinates.managerName.fromTop}
+Manager Name x: ${coordinates.managerName.x}
+
+// Address line (fromTop for addressLineY)
+addressLineY = height - ${coordinates.managerCity.fromTop}
+City x: ${coordinates.managerCity.x}
+State x: ${coordinates.managerState.x}
+Zip x: ${coordinates.managerZip.x}
+
+// Player rows (fromTop for playerStartY)
+playerStartY = height - ${coordinates.player1.fromTop}
+Player Name x: ${coordinates.player1.x}
+Birth Date x: ${coordinates.player1dob.x}
+Address x: ${coordinates.player1addr.x}
+Signature x: ${coordinates.player1sig.x}
+
+// Coach rows (fromTop for coachRow1Y)
+coachRow1Y = height - ${coordinates.coach1.fromTop}
+Coach Name x: ${coordinates.coach1.x}
+Coach Sig x: ${coordinates.coach1sig.x}
+`;
+
+      document.getElementById('output').textContent = output;
+      navigator.clipboard.writeText(output).then(() => {
+        alert('Coordinates copied to clipboard!');
+      });
+    }
+  </script>
+</body>
+</html>
