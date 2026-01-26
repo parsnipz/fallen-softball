@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY
 
-// Load Google Maps script dynamically with async
+// Load Google Maps script dynamically
 let googleMapsPromise = null
 function loadGoogleMaps() {
   if (googleMapsPromise) return googleMapsPromise
 
-  if (window.google?.maps?.places) {
+  if (window.google?.maps?.places?.Autocomplete) {
     return Promise.resolve(window.google)
   }
 
@@ -20,15 +20,32 @@ function loadGoogleMaps() {
     // Check if script already exists
     const existingScript = document.querySelector('script[src*="maps.googleapis.com"]')
     if (existingScript) {
-      existingScript.addEventListener('load', () => resolve(window.google))
+      // Wait for places library to be ready
+      const checkPlaces = () => {
+        if (window.google?.maps?.places?.Autocomplete) {
+          resolve(window.google)
+        } else {
+          setTimeout(checkPlaces, 100)
+        }
+      }
+      checkPlaces()
       return
     }
 
     const script = document.createElement('script')
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&loading=async`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places`
     script.async = true
-    script.defer = true
-    script.onload = () => resolve(window.google)
+    script.onload = () => {
+      // Wait for places library to be ready
+      const checkPlaces = () => {
+        if (window.google?.maps?.places?.Autocomplete) {
+          resolve(window.google)
+        } else {
+          setTimeout(checkPlaces, 100)
+        }
+      }
+      checkPlaces()
+    }
     script.onerror = () => reject(new Error('Failed to load Google Maps'))
     document.head.appendChild(script)
   })
@@ -55,7 +72,7 @@ export default function PlaceAutocomplete({ value, onChange, onPlaceSelect, plac
     }
 
     // Check if already loaded
-    if (window.google?.maps?.places) {
+    if (window.google?.maps?.places?.Autocomplete) {
       console.log('Google Maps already loaded')
       setIsLoaded(true)
       return
