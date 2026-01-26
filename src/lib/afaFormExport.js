@@ -13,7 +13,7 @@ const TEAM_DEFAULTS = {
   managerEmail: '',
   managerPhone: '',
   managerCell: '',
-  managerAddress: 'St. George',
+  managerAddress: '',
   managerCity: 'St. George',
   managerState: 'UT',
   managerZip: '84770',
@@ -35,6 +35,13 @@ async function loadImageAsBytes(url) {
 export async function exportAFAForm(tournament, invitations, options = {}) {
   const settings = { ...TEAM_DEFAULTS, ...options }
 
+  // Update division based on tournament type
+  if (tournament?.type === 'mens') {
+    settings.division = 'Mens'
+  } else if (tournament?.type === 'coed') {
+    settings.division = 'Coed'
+  }
+
   // Load the AFA form template
   const formUrl = '/afa-roster-form.pdf'
   const formResponse = await fetch(formUrl)
@@ -45,10 +52,10 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
   const page = pdfDoc.getPages()[0]
   const { width, height } = page.getSize()
 
-  // Font size for different sections
+  // Font sizes
   const headerFontSize = 10
-  const playerFontSize = 9
-  const signatureHeight = 18
+  const playerFontSize = 8
+  const signatureHeight = 15
 
   // Get "in" players with signatures (excluding coaches)
   const inPlayers = invitations
@@ -73,112 +80,140 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     .filter(p => !p.isCoach)
     .sort((a, b) => a.lastName.localeCompare(b.lastName))
 
-  // === HEADER SECTION ===
-  // Team Name (approx x=175, y from top ~47)
+  // === COORDINATE SYSTEM ===
+  // PDF origin is bottom-left
+  // Form is landscape letter size: ~792 x 612 points
+  // All Y positions measured from TOP of page, then converted
+
+  // === HEADER SECTION (Team Name line) ===
+  // Team Name blank starts around x=155, line is ~68 from top
+  const teamLineY = height - 68
+
   page.drawText(settings.teamName, {
-    x: 175,
-    y: height - 47,
+    x: 158,
+    y: teamLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
   })
 
-  // Class (approx x=410)
+  // Class (x=395)
   page.drawText(settings.class, {
-    x: 410,
-    y: height - 47,
+    x: 398,
+    y: teamLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
   })
 
-  // Division (approx x=480)
+  // Division (x=470)
   page.drawText(settings.division, {
-    x: 480,
-    y: height - 47,
+    x: 473,
+    y: teamLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
   })
 
-  // AFA Membership # (approx x=620)
+  // AFA Membership # (x=605)
   if (settings.afaMembership) {
     page.drawText(settings.afaMembership, {
-      x: 620,
-      y: height - 47,
+      x: 608,
+      y: teamLineY,
       size: headerFontSize,
       color: rgb(0, 0, 0),
     })
   }
 
   // === MANAGER SECTION ===
-  // Manager Name (y from top ~82)
+  // Manager line is ~108 from top
+  const managerLineY = height - 108
+
   page.drawText(settings.managerName, {
-    x: 100,
-    y: height - 82,
+    x: 95,
+    y: managerLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
   })
 
-  // Manager Email
-  page.drawText(settings.managerEmail, {
-    x: 320,
-    y: height - 82,
-    size: headerFontSize,
-    color: rgb(0, 0, 0),
-  })
+  // Manager Email (x=310)
+  if (settings.managerEmail) {
+    page.drawText(settings.managerEmail, {
+      x: 313,
+      y: managerLineY,
+      size: headerFontSize,
+      color: rgb(0, 0, 0),
+    })
+  }
 
-  // Manager Phone
-  page.drawText(settings.managerPhone, {
-    x: 530,
-    y: height - 82,
-    size: headerFontSize,
-    color: rgb(0, 0, 0),
-  })
+  // Manager Phone (x=505)
+  if (settings.managerPhone) {
+    page.drawText(settings.managerPhone, {
+      x: 508,
+      y: managerLineY,
+      size: headerFontSize,
+      color: rgb(0, 0, 0),
+    })
+  }
 
-  // Manager Cell
-  page.drawText(settings.managerCell, {
-    x: 680,
-    y: height - 82,
-    size: headerFontSize,
-    color: rgb(0, 0, 0),
-  })
+  // Manager Cell (x=655)
+  if (settings.managerCell) {
+    page.drawText(settings.managerCell, {
+      x: 658,
+      y: managerLineY,
+      size: headerFontSize,
+      color: rgb(0, 0, 0),
+    })
+  }
 
-  // Address line (y from top ~97)
-  page.drawText(settings.managerAddress, {
-    x: 55,
-    y: height - 97,
-    size: headerFontSize,
-    color: rgb(0, 0, 0),
-  })
+  // === ADDRESS LINE ===
+  // Address line is ~123 from top
+  const addressLineY = height - 123
 
-  // City
+  if (settings.managerAddress) {
+    page.drawText(settings.managerAddress, {
+      x: 52,
+      y: addressLineY,
+      size: headerFontSize,
+      color: rgb(0, 0, 0),
+    })
+  }
+
+  // City (x=250)
   page.drawText(settings.managerCity, {
-    x: 270,
-    y: height - 97,
+    x: 253,
+    y: addressLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
   })
 
-  // State
+  // State (x=405)
   page.drawText(settings.managerState, {
-    x: 430,
-    y: height - 97,
+    x: 408,
+    y: addressLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
   })
 
-  // Zip
+  // Zip (x=470)
   page.drawText(settings.managerZip, {
-    x: 495,
-    y: height - 97,
+    x: 473,
+    y: addressLineY,
     size: headerFontSize,
     color: rgb(0, 0, 0),
   })
 
   // === PLAYER ROWS ===
-  // First player row starts at approximately y from top = 130
-  // Each row is approximately 26 pixels tall
-  const playerStartY = height - 130
-  const rowHeight = 26.5
-  const maxPlayers = 16 // Form has ~16 player rows
+  // Player table header is at ~140 from top
+  // First player row starts at ~156 from top
+  // Each row is approximately 24 points tall
+  // There are 16 player row lines
+  const playerStartY = height - 156
+  const rowHeight = 24.3
+  const maxPlayers = 16
+
+  // Column X positions for player table
+  const playerNameX = 27
+  const birthDateX = 163
+  const addressX = 235
+  const signatureX = 545
 
   // Load all signature images first
   const signatureImages = {}
@@ -201,15 +236,15 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
     const player = players[i]
     const rowY = playerStartY - (i * rowHeight)
 
-    // Player Name (x=30)
+    // Player Name
     page.drawText(player.name, {
-      x: 30,
+      x: playerNameX,
       y: rowY,
       size: playerFontSize,
       color: rgb(0, 0, 0),
     })
 
-    // Birth Date (x=175)
+    // Birth Date
     if (player.dob) {
       const dobFormatted = new Date(player.dob + 'T00:00:00').toLocaleDateString('en-US', {
         month: '2-digit',
@@ -217,88 +252,99 @@ export async function exportAFAForm(tournament, invitations, options = {}) {
         year: 'numeric'
       })
       page.drawText(dobFormatted, {
-        x: 175,
+        x: birthDateX,
         y: rowY,
         size: playerFontSize,
         color: rgb(0, 0, 0),
       })
     }
 
-    // Address (x=255)
+    // Address - truncate if too long
     if (player.address) {
-      // Truncate long addresses
-      const addr = player.address.length > 40 ? player.address.substring(0, 40) + '...' : player.address
+      const maxAddrLen = 45
+      const addr = player.address.length > maxAddrLen
+        ? player.address.substring(0, maxAddrLen) + '...'
+        : player.address
       page.drawText(addr, {
-        x: 255,
+        x: addressX,
         y: rowY,
         size: playerFontSize - 1,
         color: rgb(0, 0, 0),
       })
     }
 
-    // Signature (x=580)
+    // Signature
     if (player.signatureUrl && signatureImages[player.signatureUrl]) {
       const sigImg = signatureImages[player.signatureUrl]
       const sigAspect = sigImg.width / sigImg.height
-      const sigHeight = signatureHeight
-      const sigWidth = sigHeight * sigAspect
+      const sigH = signatureHeight
+      const sigW = sigH * sigAspect
 
       page.drawImage(sigImg, {
-        x: 580,
-        y: rowY - 5,
-        width: Math.min(sigWidth, 180),
-        height: sigHeight,
+        x: signatureX,
+        y: rowY - 4,
+        width: Math.min(sigW, 200),
+        height: sigH,
       })
     }
   }
 
   // === COACH SECTION ===
-  // Coach rows are at the bottom of the form
-  // First coach row starts at approximately y from top = 555
-  const coachStartY = height - 555
-  const coachRowHeight = 26
+  // Coach table is at the bottom
+  // Coach header row is at ~546 from top
+  // First coach data row is at ~564 from top
+  // Second coach row is at ~588 from top
+  const coachRow1Y = height - 564
+  const coachRow2Y = height - 588
+  const coachRows = [coachRow1Y, coachRow2Y]
+
+  // Coach column X positions
+  const coachNameX = 27
+  const coachSigX = 200
+  const coachEmailX = 410
+  const coachPhoneX = 610
 
   for (let i = 0; i < Math.min(coaches.length, 2); i++) {
     const coach = coaches[i]
-    const rowY = coachStartY - (i * coachRowHeight)
+    const rowY = coachRows[i]
 
-    // Coach Name (x=30)
+    // Coach Name
     page.drawText(coach.name, {
-      x: 30,
+      x: coachNameX,
       y: rowY,
       size: playerFontSize,
       color: rgb(0, 0, 0),
     })
 
-    // Coach Signature (x=200)
+    // Coach Signature
     if (coach.signatureUrl && signatureImages[coach.signatureUrl]) {
       const sigImg = signatureImages[coach.signatureUrl]
       const sigAspect = sigImg.width / sigImg.height
-      const sigHeight = signatureHeight
-      const sigWidth = sigHeight * sigAspect
+      const sigH = signatureHeight
+      const sigW = sigH * sigAspect
 
       page.drawImage(sigImg, {
-        x: 200,
-        y: rowY - 5,
-        width: Math.min(sigWidth, 150),
-        height: sigHeight,
+        x: coachSigX,
+        y: rowY - 4,
+        width: Math.min(sigW, 160),
+        height: sigH,
       })
     }
 
-    // Email (x=420)
+    // Email
     if (coach.email) {
       page.drawText(coach.email, {
-        x: 420,
+        x: coachEmailX,
         y: rowY,
         size: playerFontSize,
         color: rgb(0, 0, 0),
       })
     }
 
-    // Phone (x=620)
+    // Phone
     if (coach.phone) {
       page.drawText(coach.phone, {
-        x: 620,
+        x: coachPhoneX,
         y: rowY,
         size: playerFontSize,
         color: rgb(0, 0, 0),
