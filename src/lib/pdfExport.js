@@ -25,6 +25,7 @@ export async function exportRosterPDF(tournament, invitations) {
   // Landscape orientation
   const doc = new jsPDF({ orientation: 'landscape' })
   const pageWidth = doc.internal.pageSize.width
+  const pageHeight = doc.internal.pageSize.height
 
   // Get "in" players with signatures
   const inPlayers = invitations
@@ -63,15 +64,22 @@ export async function exportRosterPDF(tournament, invitations) {
   const maleCount = inPlayers.filter(p => p.gender === 'M').length
   const femaleCount = inPlayers.filter(p => p.gender === 'F').length
 
-  let yPos = 12
+  // Fixed layout calculations - optimized for 16 players
+  const headerHeight = 20
+  const footerHeight = 10
+  const tableHeaderHeight = 8
+  const availableHeight = pageHeight - headerHeight - footerHeight - tableHeaderHeight - 10
+  const rowHeight = availableHeight / 16  // Fixed for 16 rows
 
-  // Header - Tournament Name and Team Info on one line
-  doc.setFontSize(14)
+  let yPos = 10
+
+  // Header - Tournament Name and Team Info
+  doc.setFontSize(12)
   doc.setFont('helvetica', 'bold')
   doc.text(tournament.name, pageWidth / 2, yPos, { align: 'center' })
-  yPos += 6
+  yPos += 5
 
-  doc.setFontSize(10)
+  doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
   const dateStr = tournament.date ? new Date(tournament.date + 'T00:00:00').toLocaleDateString('en-US', {
     year: 'numeric',
@@ -80,63 +88,57 @@ export async function exportRosterPDF(tournament, invitations) {
   }) : ''
   const headerInfo = `Team: Fallen | St. George, Utah | ${dateStr}${tournament.location ? ' | ' + tournament.location : ''}`
   doc.text(headerInfo, pageWidth / 2, yPos, { align: 'center' })
-  yPos += 8
+  yPos += 5
 
-  // Single table with all players
-  const rowHeight = 10
-
+  // Table with fixed row heights
   autoTable(doc, {
     startY: yPos,
-    head: [['', 'Name', 'Phone', 'Address', 'Signature']],
+    head: [['#', 'Name', 'Phone', 'Address', 'Signature']],
     body: allPlayers.map((player, index) => [
       index + 1,
-      player.name,
+      player.isCoach ? player.name + ' (Coach)' : player.name,
       player.phone,
       player.address,
       ''
     ]),
     theme: 'grid',
     styles: {
-      fontSize: 9,
-      cellPadding: 2,
+      fontSize: 8,
+      cellPadding: 1,
+      minCellHeight: rowHeight,
+      valign: 'middle',
     },
     headStyles: {
       fillColor: [59, 130, 246],
       textColor: 255,
       fontStyle: 'bold',
-      fontSize: 9,
+      fontSize: 8,
+      minCellHeight: tableHeaderHeight,
     },
     columnStyles: {
-      0: { cellWidth: 10, halign: 'center' },
-      1: { cellWidth: 50 },
-      2: { cellWidth: 35 },
-      3: { cellWidth: 100 },
-      4: { cellWidth: 70 }
+      0: { cellWidth: 8, halign: 'center' },
+      1: { cellWidth: 45 },
+      2: { cellWidth: 30 },
+      3: { cellWidth: 90 },
+      4: { cellWidth: 94 }  // Wider signature column
     },
     margin: { left: 10, right: 10 },
     didDrawCell: (data) => {
       if (data.section === 'body') {
         const player = allPlayers[data.row.index]
 
-        // Highlight coaches with background
-        if (player.isCoach && data.column.index === 1) {
-          doc.setFillColor(219, 234, 254)
-          doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'F')
-          doc.setTextColor(0)
-          doc.text(player.name + ' (Coach)', data.cell.x + 2, data.cell.y + data.cell.height / 2 + 1)
-        }
-
-        // Add signature images
+        // Add signature images - fill the cell
         if (data.column.index === 4 && player.signatureUrl && signatureImages[player.signatureUrl]) {
           const imgData = signatureImages[player.signatureUrl]
-          const imgHeight = data.cell.height - 2
-          const imgWidth = imgHeight * 3
+          const padding = 1
+          const imgHeight = data.cell.height - (padding * 2)
+          const imgWidth = data.cell.width - (padding * 2)
 
           doc.addImage(
             imgData,
             'PNG',
-            data.cell.x + 2,
-            data.cell.y + 1,
+            data.cell.x + padding,
+            data.cell.y + padding,
             imgWidth,
             imgHeight
           )
@@ -154,12 +156,10 @@ export async function exportRosterPDF(tournament, invitations) {
     }
   })
 
-  yPos = doc.lastAutoTable.finalY + 5
-
-  // Summary on one line
-  doc.setFontSize(9)
+  // Summary at bottom
+  doc.setFontSize(8)
   doc.setFont('helvetica', 'bold')
-  doc.text(`Total: ${inPlayers.length} players (${femaleCount} F, ${maleCount} M)`, 10, yPos)
+  doc.text(`Total: ${inPlayers.length} players (${femaleCount} F, ${maleCount} M)`, 10, pageHeight - 5)
 
   // Save the PDF
   const filename = `${tournament.name.replace(/[^a-z0-9]/gi, '_')}_roster.pdf`
