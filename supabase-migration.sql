@@ -211,3 +211,12 @@ ALTER TABLE tournament_lodging ADD COLUMN IF NOT EXISTS maps_url TEXT;
 
 -- Add costs_released to tournaments (controls whether costs are visible on the share page)
 ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS costs_released BOOLEAN DEFAULT FALSE;
+
+-- =============================================
+-- PUBLIC LODGING ACCESS
+-- =============================================
+
+-- Allow anyone to view lodging options (needed for player share page)
+DROP POLICY IF EXISTS "Anyone can view lodging" ON tournament_lodging;
+CREATE POLICY "Anyone can view lodging" ON tournament_lodging
+  FOR SELECT TO anon USING (true);
