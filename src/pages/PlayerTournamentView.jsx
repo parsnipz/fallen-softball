@@ -294,13 +294,15 @@ export default function PlayerTournamentView() {
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Payment</h2>
             <div className="flex flex-wrap items-center gap-6">
-              {costPerPlayer && (
-                <div>
-                  <div className="text-sm text-gray-500">Cost Per Player</div>
+              <div>
+                <div className="text-sm text-gray-500">Cost Per Player</div>
+                {tournament.costs_released && costPerPlayer ? (
                   <div className="text-2xl font-bold text-green-600">${costPerPlayer}</div>
-                </div>
-              )}
-              {tournament.venmo_link && (
+                ) : (
+                  <div className="text-2xl font-bold text-gray-400">TBD</div>
+                )}
+              </div>
+              {tournament.costs_released && tournament.venmo_link && (
                 <a
                   href={tournament.venmo_link}
                   target="_blank"
@@ -364,13 +366,17 @@ export default function PlayerTournamentView() {
                       </div>
                     </div>
 
-                    {stats.costPerPerson && (
+                    {(stats.costPerPerson || option.total_cost) && (
                       <div className="flex items-center gap-4 mt-3 pt-3 border-t">
                         <div>
                           <span className="text-sm text-gray-500">Cost per person: </span>
-                          <span className="font-bold text-green-600">${stats.costPerPerson}</span>
+                          {tournament.costs_released && stats.costPerPerson ? (
+                            <span className="font-bold text-green-600">${stats.costPerPerson}</span>
+                          ) : (
+                            <span className="font-bold text-gray-400">TBD</span>
+                          )}
                         </div>
-                        {option.venmo_link && (
+                        {tournament.costs_released && option.venmo_link && (
                           <a
                             href={option.venmo_link}
                             target="_blank"

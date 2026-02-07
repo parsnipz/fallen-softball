@@ -204,3 +204,10 @@ ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS cost_divisor INTEGER;
 -- Add address and maps_url to tournament_lodging
 ALTER TABLE tournament_lodging ADD COLUMN IF NOT EXISTS address TEXT;
 ALTER TABLE tournament_lodging ADD COLUMN IF NOT EXISTS maps_url TEXT;
+
+-- =============================================
+-- COSTS RELEASED FEATURE
+-- =============================================
+
+-- Add costs_released to tournaments (controls whether costs are visible on the share page)
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS costs_released BOOLEAN DEFAULT FALSE;

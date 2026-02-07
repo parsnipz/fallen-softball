@@ -664,14 +664,29 @@ export default function TournamentDetail({
                 </span>
               )}
             </h2>
-            <svg
-              className={`w-5 h-5 text-gray-500 transition-transform ${expandedPanels.payment ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onUpdateTournament({ costs_released: !tournament.costs_released })
+                }}
+                className={`px-3 py-1 text-xs font-medium rounded-full ${
+                  tournament.costs_released
+                    ? 'bg-green-100 text-green-700 border border-green-300'
+                    : 'bg-gray-100 text-gray-500 border border-gray-300'
+                }`}
+              >
+                {tournament.costs_released ? 'Visible to Players' : 'Hidden from Players'}
+              </button>
+              <svg
+                className={`w-5 h-5 text-gray-500 transition-transform ${expandedPanels.payment ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </button>
           {expandedPanels.payment && (
           <div className="p-4">
