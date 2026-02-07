@@ -159,7 +159,10 @@ export default function PlayerTournamentView() {
         count: lodgingInvitations.length,
         totalPeople,
         costPerPerson,
-        players: lodgingInvitations.map(inv => `${inv.player?.first_name} ${inv.player?.last_name}`)
+        players: lodgingInvitations.map(inv => {
+          const name = `${inv.player?.first_name} ${inv.player?.last_name}`
+          return inv.lodging_kids > 0 ? `${name} (+${inv.lodging_kids})` : name
+        })
       }
     })
     return stats
