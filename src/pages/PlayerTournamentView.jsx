@@ -401,7 +401,7 @@ export default function PlayerTournamentView() {
                             <span key={i}>
                               {i > 0 && ', '}
                               {p.phone ? (
-                                <a href={`sms:${p.phone}`} className="text-blue-600 hover:text-blue-800 underline">
+                                <a href={`sms:${p.phone}`} className="text-blue-600 hover:text-blue-800">
                                   {p.name}{p.kids > 0 && ` (+${p.kids})`}
                                 </a>
                               ) : (
