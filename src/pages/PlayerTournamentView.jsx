@@ -67,7 +67,7 @@ export default function PlayerTournamentView() {
             lodging_id,
             lodging_adults,
             lodging_kids,
-            player:players(id, first_name, last_name, gender)
+            player:players(id, first_name, last_name, gender, phone)
           `)
           .eq('tournament_id', tournamentId)
 
@@ -159,10 +159,11 @@ export default function PlayerTournamentView() {
         count: lodgingInvitations.length,
         totalPeople,
         costPerPerson,
-        players: lodgingInvitations.map(inv => {
-          const name = `${inv.player?.first_name} ${inv.player?.last_name}`
-          return inv.lodging_kids > 0 ? `${name} (+${inv.lodging_kids})` : name
-        })
+        players: lodgingInvitations.map(inv => ({
+          name: `${inv.player?.first_name} ${inv.player?.last_name}`,
+          phone: inv.player?.phone,
+          kids: inv.lodging_kids || 0
+        }))
       }
     })
     return stats
@@ -395,7 +396,20 @@ export default function PlayerTournamentView() {
                     {stats.players.length > 0 && (
                       <div className="mt-3 pt-3 border-t">
                         <div className="text-xs text-gray-500">Staying here:</div>
-                        <div className="text-sm text-gray-700">{stats.players.join(', ')}</div>
+                        <div className="text-sm text-gray-700">
+                          {stats.players.map((p, i) => (
+                            <span key={i}>
+                              {i > 0 && ', '}
+                              {p.phone ? (
+                                <a href={`sms:${p.phone}`} className="text-blue-600 hover:text-blue-800 underline">
+                                  {p.name}{p.kids > 0 && ` (+${p.kids})`}
+                                </a>
+                              ) : (
+                                <span>{p.name}{p.kids > 0 && ` (+${p.kids})`}</span>
+                              )}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
